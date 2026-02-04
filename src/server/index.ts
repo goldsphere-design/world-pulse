@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
@@ -8,11 +9,13 @@ import { EarthquakeCollector } from './collectors/earthquakes';
 // Load environment variables
 dotenv.config();
 
+const ALLOWED_ORIGIN = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173',
+    origin: ALLOWED_ORIGIN,
     methods: ['GET', 'POST'],
   },
 });
@@ -42,6 +45,7 @@ function startCollectors() {
 }
 
 // Middleware
+app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
 // Health check endpoint
@@ -92,18 +96,33 @@ httpServer.listen(PORT, () => {
   startCollectors();
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('[Server] SIGTERM received, shutting down gracefully');
+// Graceful shutdown handler
+function shutdown(signal: string) {
+  console.log(`\n[Server] ${signal} received, shutting down gracefully...`);
 
   // Stop all collectors
   collectors.forEach((c) => c.stop());
+
+  // Close all socket connections
+  io.close(() => {
+    console.log('[Server] Socket.io connections closed');
+  });
 
   httpServer.close(() => {
     console.log('[Server] HTTP server closed');
     process.exit(0);
   });
-});
+
+  // Force exit after 5 seconds if graceful shutdown fails
+  setTimeout(() => {
+    console.log('[Server] Forcing exit...');
+    process.exit(1);
+  }, 5000);
+}
+
+// Handle shutdown signals
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
