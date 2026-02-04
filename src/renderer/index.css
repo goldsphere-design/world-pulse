@@ -31,6 +31,19 @@ body {
   animation: scroll 30s linear infinite;
 }
 
+/* Event pin pulse animation */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.8;
+  }
+}
+
 /* Custom scrollbar for event panel */
 ::-webkit-scrollbar {
   width: 6px;
