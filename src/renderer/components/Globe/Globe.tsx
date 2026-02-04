@@ -14,47 +14,94 @@ export function Globe() {
   };
 
   return (
-    <div className="bg-[#0f1419] border-2 border-green-400 p-4 flex flex-col min-h-0">
-      <div className="text-xs font-bold border-b border-green-400 pb-2 mb-3 uppercase text-green-400">
+    <div
+      style={{
+        background: '#0f1419',
+        border: '2px solid #00ff88',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '12px',
+          fontWeight: 'bold',
+          borderBottom: '1px solid #00ff88',
+          paddingBottom: '8px',
+          marginBottom: '12px',
+          textTransform: 'uppercase',
+          color: '#00ff88',
+        }}
+      >
         GLOBE [GEOGRAPHIC VIEW]
       </div>
 
-      {/* Globe visualization container */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="relative" style={{ width: '320px', height: '320px' }}>
+      {/* Globe visualization container - centered */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '350px',
+        }}
+      >
+        <div
+          style={{
+            position: 'relative',
+            width: '320px',
+            height: '320px',
+          }}
+        >
           {/* Globe circle */}
           <div
-            className="w-full h-full rounded-full relative overflow-hidden"
             style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              position: 'relative',
+              overflow: 'hidden',
               background: 'radial-gradient(circle at 30% 30%, #1a3a3a, #0a1a1a)',
               border: '3px solid #00ff88',
               boxShadow: '0 0 30px rgba(0, 255, 136, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.5)',
             }}
           >
             {/* Grid lines */}
-            <div className="absolute inset-0 opacity-40">
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.4 }}>
               {[20, 40, 50, 60, 80].map((pos) => (
                 <div
                   key={`h-${pos}`}
-                  className="absolute w-full bg-green-400"
-                  style={{ top: `${pos}%`, height: '1px' }}
+                  style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '1px',
+                    background: '#00ff88',
+                    top: `${pos}%`,
+                  }}
                 />
               ))}
               {[20, 40, 50, 60, 80].map((pos) => (
                 <div
                   key={`v-${pos}`}
-                  className="absolute h-full bg-green-400"
-                  style={{ left: `${pos}%`, width: '1px' }}
+                  style={{
+                    position: 'absolute',
+                    height: '100%',
+                    width: '1px',
+                    background: '#00ff88',
+                    left: `${pos}%`,
+                  }}
                 />
               ))}
             </div>
 
-            {/* Simple continent outlines (stylized) */}
-            <div className="absolute inset-0 opacity-30">
+            {/* Continent outlines */}
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.3 }}>
               {/* North America */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '15%',
                   left: '8%',
                   width: '22%',
@@ -67,8 +114,8 @@ export function Globe() {
               />
               {/* South America */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '50%',
                   left: '20%',
                   width: '12%',
@@ -80,8 +127,8 @@ export function Globe() {
               />
               {/* Europe */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '12%',
                   left: '43%',
                   width: '18%',
@@ -94,8 +141,8 @@ export function Globe() {
               />
               {/* Africa */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '32%',
                   left: '42%',
                   width: '18%',
@@ -107,8 +154,8 @@ export function Globe() {
               />
               {/* Asia */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '10%',
                   left: '55%',
                   width: '35%',
@@ -121,8 +168,8 @@ export function Globe() {
               />
               {/* Australia */}
               <div
-                className="absolute"
                 style={{
+                  position: 'absolute',
                   top: '60%',
                   left: '75%',
                   width: '15%',
@@ -143,13 +190,17 @@ export function Globe() {
               return (
                 <div
                   key={event.id}
-                  className="absolute rounded-full cursor-pointer transition-all"
+                  onClick={() => setFeaturedEvent(event)}
+                  title={event.title}
                   style={{
+                    position: 'absolute',
                     left: `${x}%`,
                     top: `${y}%`,
                     transform: 'translate(-50%, -50%)',
                     width: isFeatured ? '16px' : '10px',
                     height: isFeatured ? '16px' : '10px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
                     background: isFeatured ? '#facc15' : '#ef4444',
                     boxShadow: isFeatured
                       ? '0 0 20px #facc15, 0 0 40px #facc15'
@@ -157,16 +208,24 @@ export function Globe() {
                     zIndex: isFeatured ? 20 : 10,
                     animation: isFeatured ? 'pulse 1.5s ease-in-out infinite' : 'none',
                   }}
-                  onClick={() => setFeaturedEvent(event)}
-                  title={event.title}
                 />
               );
             })}
 
             {/* Center label when no events */}
             {eventsWithLocations.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-green-400/50 text-sm">No events to display</span>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span style={{ color: 'rgba(0, 255, 136, 0.5)', fontSize: '14px' }}>
+                  No events to display
+                </span>
               </div>
             )}
           </div>
@@ -174,18 +233,35 @@ export function Globe() {
       </div>
 
       {/* Legend */}
-      <div className="mt-4 text-xs text-green-400/70 flex justify-center gap-6">
-        <span className="flex items-center gap-2">
+      <div
+        style={{
+          marginTop: '16px',
+          fontSize: '12px',
+          color: 'rgba(0, 255, 136, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '24px',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
-            className="rounded-full"
-            style={{ width: '10px', height: '10px', background: '#facc15' }}
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: '#facc15',
+            }}
           />
           Featured
         </span>
-        <span className="flex items-center gap-2">
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
-            className="rounded-full"
-            style={{ width: '8px', height: '8px', background: '#ef4444' }}
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#ef4444',
+            }}
           />
           Event
         </span>

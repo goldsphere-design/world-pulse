@@ -5,10 +5,29 @@ import { Ticker } from '../Ticker/Ticker';
 
 export function Dashboard() {
   return (
-    <div className="h-screen flex flex-col bg-[#0a0e1a] text-green-400 font-mono">
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#0a0e1a',
+        color: '#00ff88',
+        fontFamily: "'Courier New', Consolas, Monaco, monospace",
+      }}
+    >
       <Header />
 
-      <main className="flex-1 grid grid-cols-[1.5fr_1fr] gap-4 p-4 min-h-0">
+      <main
+        style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: '1.5fr 1fr',
+          gap: '16px',
+          padding: '16px',
+          minHeight: 0,
+          overflow: 'hidden',
+        }}
+      >
         <Globe />
         <EventPanel />
       </main>
