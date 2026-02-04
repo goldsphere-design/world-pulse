@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concept B: Mission Control</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0e1a;
+      color: #00ff88;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: #0f1419;
+      border-bottom: 2px solid #00ff88;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .header-section {
+      padding: 0 15px;
+      border-left: 2px solid #00ff88;
+    }
+    
+    .header-section:first-child {
+      border-left: none;
+    }
+    
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 15px;
+      padding: 15px;
+    }
+    
+    .panel {
+      background: #0f1419;
+      border: 2px solid #00ff88;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .panel-title {
+      font-size: 12px;
+      font-weight: bold;
+      border-bottom: 1px solid #00ff88;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    
+    .globe-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .globe {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1a3a3a, #0a1a1a);
+      border: 3px solid #00ff88;
+      box-shadow: 
+        0 0 30px rgba(0, 255, 136, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      animation: rotate 40s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .pin {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffeb3b;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ffeb3b;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    
+    .pin.p1 { top: 40%; left: 25%; }
+    .pin.p2 { top: 60%; left: 60%; background: #ff5252; box-shadow: 0 0 15px #ff5252; }
+    .pin.p3 { top: 30%; left: 75%; background: #00bcd4; box-shadow: 0 0 15px #00bcd4; }
+    
+    .heatmap-bar {
+      margin-top: 15px;
+      width: 100%;
+    }
+    
+    .heatmap-label {
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .heatmap-gradient {
+      height: 20px;
+      background: linear-gradient(to right, #ff5252, #ffeb3b, #00ff88);
+      border: 1px solid #00ff88;
+      position: relative;
+    }
+    
+    .heatmap-indicator {
+      position: absolute;
+      top: -5px;
+      left: 35%;
+      width: 2px;
+      height: 30px;
+      background: #fff;
+      box-shadow: 0 0 10px #fff;
+    }
+    
+    .heatmap-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      margin-top: 3px;
+      opacity: 0.7;
+    }
+    
+    .event-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .event-item {
+      border-left: 3px solid #00ff88;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      background: rgba(0, 255, 136, 0.05);
+    }
+    
+    .event-item.critical {
+      border-left-color: #ff5252;
+      background: rgba(255, 82, 82, 0.05);
+    }
+    
+    .event-item.warning {
+      border-left-color: #ffeb3b;
+      background: rgba(255, 235, 59, 0.05);
+    }
+    
+    .event-label {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    .event-data {
+      color: #aaa;
+    }
+    
+    .trend-item {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      font-size: 11px;
+    }
+    
+    .trend-up { color: #ff5252; }
+    .trend-down { color: #00bcd4; }
+    
+    .personal-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: rgba(0, 255, 136, 0.05);
+      border-left: 2px solid #00ff88;
+      font-size: 11px;
+    }
+    
+    .ticker {
+      background: #0f1419;
+      border-top: 2px solid #00ff88;
+      padding: 12px 20px;
+      overflow: hidden;
+    }
+    
+    .ticker-content {
+      display: flex;
+      animation: scroll 25s linear infinite;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    
+    .ticker-item {
+      padding: 0 40px;
+    }
+    
+    .footer {
+      background: #0a0e1a;
+      border-top: 1px solid #00ff88;
+      padding: 8px 20px;
+      font-size: 11px;
+      display: flex;
+      gap: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-section">█ WORLD PULSE █</div>
+      <div class="header-section">LIVE FEED</div>
+      <div class="header-section" id="time">22:04:17 EST</div>
+    </div>
+    
+    <div class="main">
+      <div class="panel globe-panel">
+        <div class="panel-title">─GLOBE─</div>
+        <div class="globe">
+          <div class="pin p1"></div>
+          <div class="pin p2"></div>
+          <div class="pin p3"></div>
+        </div>
+        <div class="heatmap-bar">
+          <div class="heatmap-label">SENTIMENT HEAT MAP: ON</div>
+          <div class="heatmap-gradient">
+            <div class="heatmap-indicator"></div>
+          </div>
+          <div class="heatmap-range">
+            <span>-1.0 NEGATIVE</span>
+            <span>NEUTRAL</span>
+            <span>+1.0 POSITIVE</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─EVENTS─</div>
+        <div class="event-list">
+          <div class="event-item">
+            <div class="event-label">>> SEISMIC</div>
+            <div class="event-data">M5.2 Tonga</div>
+            <div class="event-data">22:02 EST</div>
+            <div class="event-data">Depth: 10km</div>
+          </div>
+          
+          <div class="event-item warning">
+            <div class="event-label">>> WEATHER</div>
+            <div class="event-data">Storm ATL-4</div>
+            <div class="event-data">Cat 2, 120kt</div>
+            <div class="event-data">22:00 EST</div>
+          </div>
+          
+          <div class="event-item critical">
+            <div class="event-label">>> NEWS</div>
+            <div class="event-data">Cluster: 127 stories</div>
+            <div class="event-data">Middle East</div>
+            <div class="event-data">Sentiment: -0.42</div>
+          </div>
+          
+          <div class="event-item">
+            <div class="event-label">>> ASTRONOMY</div>
+            <div class="event-data">ISS Overhead</div>
+            <div class="event-data">23:15 EST</div>
+            <div class="event-data">Max Elev: 47°</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─TRENDS─</div>
+        <div class="event-list">
+          <div class="trend-item trend-up">↑ News +14%</div>
+          <div class="trend-item trend-down">↓ Quake -3%</div>
+          <div class="trend-item">→ Weather Stable</div>
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,136,0.3);">
+            <div style="margin-bottom: 8px; font-weight: bold;">🔥 HOTSPOTS</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Middle East</div>
+            <div style="font-size: 10px; padding: 3px 0;">• South Asia</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Europe</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Pacific Rim</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─YOUR DAY─</div>
+        <div class="event-list">
+          <div class="personal-item">
+            <div>📅 9:00 AM</div>
+            <div style="margin-top: 3px;">Team Sync</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>📅 2:00 PM</div>
+            <div style="margin-top: 3px;">Client Call</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>🌦️ Weather</div>
+            <div style="margin-top: 3px;">Rain PM • 42°F</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>🎵 New Music</div>
+            <div style="margin-top: 3px;">Alt-J - New Album</div>
+            <div style="margin-top: 3px;">The National - Single</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ticker">
+      <div class="ticker-content">
+        <div class="ticker-item">M6.8 CHILE</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">TYPHOON PACIFIC</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">ISS OVERHEAD 23:15</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">SOLAR FLARE X2.1</div>
+        <div class="ticker-item">•</div>
+        <!-- Duplicate -->
+        <div class="ticker-item">M6.8 CHILE</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">TYPHOON PACIFIC</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">ISS OVERHEAD 23:15</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">SOLAR FLARE X2.1</div>
+        <div class="ticker-item">•</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <span>⚡ 7 SOURCES ACTIVE</span>
+      <span>🔄 REFRESH: 5s</span>
+      <span>📊 1,247 EVENTS (24h)</span>
+    </div>
+  </div>
+  
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'America/New_York'
+      });
+      document.getElementById('time').textContent = `${timeStr} EST`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>

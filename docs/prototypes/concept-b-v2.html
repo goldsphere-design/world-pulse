@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concept B v2: Clear Geographic Context</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0e1a;
+      color: #00ff88;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: #0f1419;
+      border-bottom: 2px solid #00ff88;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .header-section {
+      padding: 0 15px;
+      border-left: 2px solid #00ff88;
+    }
+    
+    .header-section:first-child {
+      border-left: none;
+    }
+    
+    .header-section.featured {
+      flex: 1;
+      color: #ffeb3b;
+      animation: pulse-text 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-text {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 15px;
+      padding: 15px;
+    }
+    
+    .panel {
+      background: #0f1419;
+      border: 2px solid #00ff88;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .panel-title {
+      font-size: 12px;
+      font-weight: bold;
+      border-bottom: 1px solid #00ff88;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    
+    .globe-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .globe-container {
+      position: relative;
+      width: 340px;
+      height: 340px;
+    }
+    
+    .globe {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1a3a3a, #0a1a1a);
+      border: 3px solid #00ff88;
+      box-shadow: 
+        0 0 30px rgba(0, 255, 136, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .map-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      animation: rotate 50s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Grid system */
+    .grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.4;
+    }
+    
+    .grid-h {
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: #00ff88;
+      left: 0;
+    }
+    
+    .grid-v {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: #00ff88;
+      top: 0;
+    }
+    
+    /* Continent shapes - much more visible */
+    .landmass {
+      position: absolute;
+      border: 2px solid #00ff88;
+      background: rgba(0, 255, 136, 0.15);
+    }
+    
+    /* North America */
+    .na {
+      top: 15%;
+      left: 8%;
+      width: 22%;
+      height: 35%;
+      clip-path: polygon(
+        30% 0%, 60% 5%, 85% 15%, 95% 45%, 
+        80% 70%, 55% 85%, 40% 95%, 20% 80%, 
+        10% 60%, 5% 30%, 15% 10%
+      );
+    }
+    
+    /* South America */
+    .sa {
+      top: 45%;
+      left: 18%;
+      width: 14%;
+      height: 38%;
+      clip-path: polygon(
+        40% 0%, 65% 8%, 75% 25%, 80% 60%, 
+        70% 85%, 45% 100%, 25% 90%, 20% 70%, 
+        25% 40%, 30% 15%
+      );
+    }
+    
+    /* Europe */
+    .eu {
+      top: 12%;
+      left: 43%;
+      width: 18%;
+      height: 22%;
+      clip-path: polygon(
+        5% 40%, 20% 10%, 45% 0%, 75% 15%, 
+        90% 35%, 100% 60%, 85% 85%, 60% 100%, 
+        30% 90%, 10% 70%
+      );
+    }
+    
+    /* Africa */
+    .af {
+      top: 30%;
+      left: 43%;
+      width: 20%;
+      height: 42%;
+      clip-path: polygon(
+        30% 0%, 60% 2%, 75% 15%, 85% 35%, 
+        85% 60%, 75% 85%, 55% 100%, 35% 95%, 
+        20% 80%, 15% 50%, 20% 25%
+      );
+    }
+    
+    /* Asia */
+    .as {
+      top: 8%;
+      left: 55%;
+      width: 38%;
+      height: 50%;
+      clip-path: polygon(
+        5% 35%, 15% 15%, 30% 5%, 50% 0%, 
+        70% 8%, 85% 20%, 95% 40%, 100% 65%, 
+        90% 85%, 70% 95%, 45% 100%, 25% 90%, 
+        10% 70%, 0% 50%
+      );
+    }
+    
+    /* Australia */
+    .au {
+      bottom: 18%;
+      right: 12%;
+      width: 16%;
+      height: 20%;
+      clip-path: polygon(
+        15% 15%, 50% 0%, 85% 10%, 100% 35%, 
+        95% 70%, 75% 95%, 35% 100%, 10% 75%, 
+        0% 45%, 5% 25%
+      );
+    }
+    
+    /* Geographic labels */
+    .geo-label {
+      position: absolute;
+      font-size: 9px;
+      color: #00ff88;
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    /* Ocean labels */
+    .ocean-label {
+      position: absolute;
+      font-size: 8px;
+      color: #4fc3f7;
+      font-style: italic;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    /* Latitude/Longitude markers */
+    .coord-label {
+      position: absolute;
+      font-size: 7px;
+      color: #00ff88;
+      opacity: 0.5;
+    }
+    
+    .pin {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #ffeb3b;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+      animation: blink 1.5s ease-in-out infinite;
+      z-index: 100;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    .pin.featured {
+      width: 20px;
+      height: 20px;
+      animation: featured-pulse 1s ease-in-out infinite;
+      z-index: 200;
+    }
+    
+    @keyframes featured-pulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+      }
+      50% { 
+        transform: scale(1.5); 
+        box-shadow: 0 0 50px currentColor, 0 0 100px currentColor;
+      }
+    }
+    
+    .pin.p1 { 
+      top: 62%; 
+      left: 82%;
+      color: #ffeb3b;
+    }
+    
+    .pin.p2 { 
+      top: 35%; 
+      left: 30%; 
+      color: #ff5252;
+    }
+    
+    .pin.p3 { 
+      top: 32%; 
+      left: 58%; 
+      color: #ff6b6b;
+    }
+    
+    .pin.p4 {
+      top: 40%;
+      left: 65%;
+      color: #00bcd4;
+    }
+    
+    .pin.p5 {
+      top: 30%;
+      left: 12%;
+      color: #ff9800;
+    }
+    
+    .pin-label {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.95);
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      border: 1px solid currentColor;
+      font-weight: bold;
+    }
+    
+    .pin.featured .pin-label,
+    .pin:hover .pin-label {
+      opacity: 1;
+    }
+    
+    .heatmap-bar {
+      margin-top: 12px;
+      width: 100%;
+    }
+    
+    .heatmap-label {
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .heatmap-gradient {
+      height: 20px;
+      background: linear-gradient(to right, #ff5252, #ffeb3b, #00ff88);
+      border: 1px solid #00ff88;
+      position: relative;
+    }
+    
+    .heatmap-indicator {
+      position: absolute;
+      top: -5px;
+      left: 35%;
+      width: 2px;
+      height: 30px;
+      background: #fff;
+      box-shadow: 0 0 10px #fff;
+      transition: left 0.5s;
+    }
+    
+    .heatmap-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      margin-top: 3px;
+      opacity: 0.7;
+    }
+    
+    .event-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .event-item {
+      border-left: 3px solid #00ff88;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      background: rgba(0, 255, 136, 0.05);
+      transition: all 0.3s;
+    }
+    
+    .event-item.featured {
+      background: rgba(255, 235, 59, 0.15);
+      border-left-color: #ffeb3b;
+      transform: translateX(5px);
+    }
+    
+    .event-item.critical {
+      border-left-color: #ff5252;
+      background: rgba(255, 82, 82, 0.05);
+    }
+    
+    .event-item.warning {
+      border-left-color: #ffeb3b;
+      background: rgba(255, 235, 59, 0.05);
+    }
+    
+    .event-label {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    .event-data {
+      color: #aaa;
+    }
+    
+    .trend-item {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      font-size: 11px;
+    }
+    
+    .trend-up { color: #ff5252; }
+    .trend-down { color: #00bcd4; }
+    
+    .personal-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: rgba(0, 255, 136, 0.05);
+      border-left: 2px solid #00ff88;
+      font-size: 11px;
+    }
+    
+    .ticker {
+      background: #0f1419;
+      border-top: 2px solid #00ff88;
+      padding: 12px 20px;
+      overflow: hidden;
+    }
+    
+    .ticker-content {
+      display: flex;
+      animation: scroll 25s linear infinite;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    
+    .ticker-item {
+      padding: 0 40px;
+    }
+    
+    .footer {
+      background: #0a0e1a;
+      border-top: 1px solid #00ff88;
+      padding: 8px 20px;
+      font-size: 11px;
+      display: flex;
+      gap: 30px;
+    }
+    
+    .cycle-indicator {
+      margin-left: auto;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-section">█ WORLD PULSE █</div>
+      <div class="header-section">LIVE FEED</div>
+      <div class="header-section" id="time">22:04:17 EST</div>
+      <div class="header-section featured" id="featured">
+        ⚡ FEATURED: M5.2 Earthquake - Tonga, Pacific Ocean
+      </div>
+    </div>
+    
+    <div class="main">
+      <div class="panel globe-panel">
+        <div class="panel-title">─GLOBE─ [GEOGRAPHIC VIEW]</div>
+        <div class="globe-container">
+          <div class="globe">
+            <!-- Grid lines -->
+            <div class="grid">
+              <div class="grid-h" style="top: 20%;"></div>
+              <div class="grid-h" style="top: 40%;"></div>
+              <div class="grid-h" style="top: 50%;"></div>
+              <div class="grid-h" style="top: 60%;"></div>
+              <div class="grid-h" style="top: 80%;"></div>
+              <div class="grid-v" style="left: 20%;"></div>
+              <div class="grid-v" style="left: 40%;"></div>
+              <div class="grid-v" style="left: 50%;"></div>
+              <div class="grid-v" style="left: 60%;"></div>
+              <div class="grid-v" style="left: 80%;"></div>
+            </div>
+            
+            <!-- Latitude labels -->
+            <div class="coord-label" style="top: 18%; left: 2%;">60°N</div>
+            <div class="coord-label" style="top: 38%; left: 2%;">30°N</div>
+            <div class="coord-label" style="top: 48%; left: 2%;">0°</div>
+            <div class="coord-label" style="top: 58%; left: 2%;">30°S</div>
+            <div class="coord-label" style="top: 78%; left: 2%;">60°S</div>
+            
+            <!-- Rotating map layer -->
+            <div class="map-layer">
+              <!-- Continents with clear borders -->
+              <div class="landmass na"></div>
+              <div class="landmass sa"></div>
+              <div class="landmass eu"></div>
+              <div class="landmass af"></div>
+              <div class="landmass as"></div>
+              <div class="landmass au"></div>
+              
+              <!-- Continent labels (rotate with map) -->
+              <div class="geo-label" style="top: 30%; left: 18%;">N.AMERICA</div>
+              <div class="geo-label" style="top: 62%; left: 24%;">S.AMERICA</div>
+              <div class="geo-label" style="top: 20%; left: 50%;">EUROPE</div>
+              <div class="geo-label" style="top: 50%; left: 52%;">AFRICA</div>
+              <div class="geo-label" style="top: 32%; left: 72%;">ASIA</div>
+              <div class="geo-label" style="bottom: 22%; right: 18%;">AUSTRALIA</div>
+            </div>
+            
+              <!-- Event pins (inside map-layer so they rotate WITH geography) -->
+              <div class="pin p1 featured" data-event="0">
+                <div class="pin-label">TONGA</div>
+              </div>
+              <div class="pin p2" data-event="1">
+                <div class="pin-label">ATLANTIC</div>
+              </div>
+              <div class="pin p3" data-event="2">
+                <div class="pin-label">MIDDLE EAST</div>
+              </div>
+              <div class="pin p4" data-event="3">
+                <div class="pin-label">ISS</div>
+              </div>
+              <div class="pin p5" data-event="4">
+                <div class="pin-label">CALIFORNIA</div>
+              </div>
+            </div>
+            
+            <!-- Ocean labels (static) -->
+            <div class="ocean-label" style="top: 50%; left: 5%;">PACIFIC</div>
+            <div class="ocean-label" style="top: 40%; left: 35%;">ATLANTIC</div>
+            <div class="ocean-label" style="top: 55%; left: 55%;">INDIAN</div>
+          </div>
+        </div>
+        <div class="heatmap-bar">
+          <div class="heatmap-label">SENTIMENT HEAT MAP: ON</div>
+          <div class="heatmap-gradient">
+            <div class="heatmap-indicator" id="sentiment-indicator"></div>
+          </div>
+          <div class="heatmap-range">
+            <span>-1.0 NEGATIVE</span>
+            <span>NEUTRAL</span>
+            <span>+1.0 POSITIVE</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─EVENTS─ [AUTO-CYCLING]</div>
+        <div class="event-list">
+          <div class="event-item featured" data-event="0">
+            <div class="event-label">>> SEISMIC [★ FEATURED]</div>
+            <div class="event-data">M5.2 Tonga</div>
+            <div class="event-data">22:02 EST</div>
+            <div class="event-data">Depth: 10km</div>
+            <div class="event-data">Pacific Ocean, 15°S 174°W</div>
+          </div>
+          
+          <div class="event-item warning" data-event="1">
+            <div class="event-label">>> WEATHER</div>
+            <div class="event-data">Storm ATL-4</div>
+            <div class="event-data">Cat 2, 120kt</div>
+            <div class="event-data">22:00 EST</div>
+            <div class="event-data">Atlantic, 25°N 65°W</div>
+          </div>
+          
+          <div class="event-item critical" data-event="2">
+            <div class="event-label">>> NEWS</div>
+            <div class="event-data">Cluster: 127 stories</div>
+            <div class="event-data">Middle East</div>
+            <div class="event-data">Sentiment: -0.42</div>
+            <div class="event-data">Region: 32°N 35°E</div>
+          </div>
+          
+          <div class="event-item" data-event="3">
+            <div class="event-label">>> ASTRONOMY</div>
+            <div class="event-data">ISS Overhead</div>
+            <div class="event-data">23:15 EST</div>
+            <div class="event-data">Max Elev: 47°</div>
+            <div class="event-data">Visible: NYC Area</div>
+          </div>
+          
+          <div class="event-item" data-event="4">
+            <div class="event-label">>> SEISMIC</div>
+            <div class="event-data">M3.8 California</div>
+            <div class="event-data">21:47 EST</div>
+            <div class="event-data">Depth: 8km</div>
+            <div class="event-data">San Francisco Bay, 37°N 122°W</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─TRENDS─</div>
+        <div class="event-list">
+          <div class="trend-item trend-up">↑ News +14%</div>
+          <div class="trend-item trend-down">↓ Quake -3%</div>
+          <div class="trend-item">→ Weather Stable</div>
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,136,0.3);">
+            <div style="margin-bottom: 8px; font-weight: bold;">🔥 HOTSPOTS</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Middle East (news)</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Pacific Rim (seismic)</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Atlantic (weather)</div>
+            <div style="font-size: 10px; padding: 3px 0;">• Europe (political)</div>
+          </div>
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,255,136,0.3);">
+            <div style="margin-bottom: 8px; font-weight: bold;">📊 LAST 24H</div>
+            <div style="font-size: 10px; padding: 3px 0;">Earthquakes: 47</div>
+            <div style="font-size: 10px; padding: 3px 0;">Storms: 8</div>
+            <div style="font-size: 10px; padding: 3px 0;">News Stories: 1,247</div>
+            <div style="font-size: 10px; padding: 3px 0;">Avg Sentiment: -0.12</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">─YOUR DAY─</div>
+        <div class="event-list">
+          <div class="personal-item">
+            <div>📅 9:00 AM</div>
+            <div style="margin-top: 3px;">Team Sync</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>📅 2:00 PM</div>
+            <div style="margin-top: 3px;">Client Call</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>🌦️ Weather Today</div>
+            <div style="margin-top: 3px;">Rain PM • 42°F</div>
+            <div style="margin-top: 3px;">Bring umbrella!</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>🎵 New Music</div>
+            <div style="margin-top: 3px;">Alt-J - New Album</div>
+            <div style="margin-top: 3px;">The National - Single</div>
+            <div style="margin-top: 3px;">Bon Iver - EP</div>
+          </div>
+          
+          <div class="personal-item">
+            <div>📰 Recommended</div>
+            <div style="margin-top: 3px;">Tech: AI Breakthroughs</div>
+            <div style="margin-top: 3px;">Science: Mars Mission</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ticker">
+      <div class="ticker-content">
+        <div class="ticker-item">🔴 M6.8 CHILE</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">⛈️ TYPHOON PACIFIC</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">🔭 ISS OVERHEAD 23:15</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">📰 SOLAR FLARE X2.1</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">🌊 TSUNAMI WATCH ISSUED</div>
+        <div class="ticker-item">•</div>
+        <!-- Duplicate -->
+        <div class="ticker-item">🔴 M6.8 CHILE</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">⛈️ TYPHOON PACIFIC</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">🔭 ISS OVERHEAD 23:15</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">📰 SOLAR FLARE X2.1</div>
+        <div class="ticker-item">•</div>
+        <div class="ticker-item">🌊 TSUNAMI WATCH ISSUED</div>
+        <div class="ticker-item">•</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <span>⚡ 7 SOURCES ACTIVE</span>
+      <span>🔄 REFRESH: 5s</span>
+      <span>📊 1,247 EVENTS (24h)</span>
+      <span class="cycle-indicator" id="cycle">CYCLE: Event 1/5 (8s remaining)</span>
+    </div>
+  </div>
+  
+  <script>
+    // Event cycling system
+    const events = [
+      { 
+        id: 0, 
+        title: 'M5.2 Earthquake - Tonga, Pacific Ocean',
+        sentiment: 0.35,
+        pinClass: 'p1'
+      },
+      { 
+        id: 1, 
+        title: 'Cat 2 Storm - Atlantic',
+        sentiment: 0.25,
+        pinClass: 'p2'
+      },
+      { 
+        id: 2, 
+        title: 'News Cluster - Middle East',
+        sentiment: -0.42,
+        pinClass: 'p3'
+      },
+      { 
+        id: 3, 
+        title: 'ISS Overhead Pass - NYC Area',
+        sentiment: 0.65,
+        pinClass: 'p4'
+      },
+      { 
+        id: 4, 
+        title: 'M3.8 Earthquake - California',
+        sentiment: 0.30,
+        pinClass: 'p5'
+      }
+    ];
+    
+    let currentEventIndex = 0;
+    let cycleCountdown = 8;
+    const CYCLE_DURATION = 8; // seconds between rotations
+    
+    function updateFeaturedEvent() {
+      const event = events[currentEventIndex];
+      
+      // Update header
+      document.getElementById('featured').textContent = `⚡ FEATURED: ${event.title}`;
+      
+      // Update sentiment indicator
+      const sentimentPercent = ((event.sentiment + 1) / 2) * 100;
+      document.getElementById('sentiment-indicator').style.left = sentimentPercent + '%';
+      
+      // Update featured class on pins
+      document.querySelectorAll('.pin').forEach(pin => {
+        pin.classList.remove('featured');
+      });
+      const featuredPin = document.querySelector('.pin.' + event.pinClass);
+      if (featuredPin) {
+        featuredPin.classList.add('featured');
+      }
+      
+      // Update featured class on event items
+      document.querySelectorAll('.event-item').forEach(item => {
+        item.classList.remove('featured');
+        const eventLabel = item.querySelector('.event-label');
+        if (eventLabel) {
+          eventLabel.textContent = eventLabel.textContent.replace(' [★ FEATURED]', '');
+        }
+      });
+      
+      const featuredItem = document.querySelector(`.event-item[data-event="${event.id}"]`);
+      if (featuredItem) {
+        featuredItem.classList.add('featured');
+        const label = featuredItem.querySelector('.event-label');
+        if (label && !label.textContent.includes('FEATURED')) {
+          label.textContent += ' [★ FEATURED]';
+        }
+      }
+      
+      // Move to next event
+      currentEventIndex = (currentEventIndex + 1) % events.length;
+      cycleCountdown = CYCLE_DURATION;
+    }
+    
+    function updateCycleIndicator() {
+      const nextEventNum = currentEventIndex + 1;
+      document.getElementById('cycle').textContent = 
+        `CYCLE: Event ${nextEventNum}/${events.length} (${cycleCountdown}s remaining)`;
+      
+      cycleCountdown--;
+      if (cycleCountdown < 0) {
+        updateFeaturedEvent();
+      }
+    }
+    
+    function updateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'America/New_York'
+      });
+      document.getElementById('time').textContent = `${timeStr} EST`;
+    }
+    
+    // Initialize
+    updateFeaturedEvent();
+    updateTime();
+    
+    // Update cycle indicator every second
+    setInterval(updateCycleIndicator, 1000);
+    
+    // Update time every second
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>
