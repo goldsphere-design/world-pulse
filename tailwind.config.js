@@ -5,7 +5,14 @@ export default {
     './src/renderer/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      borderWidth: {
+        '3': '3px',
+      },
+      fontFamily: {
+        mono: ['Courier New', 'Consolas', 'Monaco', 'monospace'],
+      },
+    },
   },
   plugins: [],
 };

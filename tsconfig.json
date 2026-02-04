@@ -24,12 +24,9 @@
       "@shared/*": ["src/shared/*"],
       "@renderer/*": ["src/renderer/*"],
       "@server/*": ["src/server/*"]
-    }
+    },
+    "types": ["vite/client", "node"]
   },
   "include": ["src"],
-  "references": [
-    { "path": "./tsconfig.renderer.json" },
-    { "path": "./tsconfig.server.json" },
-    { "path": "./tsconfig.main.json" }
-  ]
+  "exclude": ["node_modules", "dist"]
 }
