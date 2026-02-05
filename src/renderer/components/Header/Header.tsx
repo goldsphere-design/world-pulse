@@ -37,11 +37,11 @@ export function Header() {
       <div className="text-green-400">WORLD PULSE</div>
       <div className="pl-4 border-l-2 border-green-400">{getConnectionIndicator()}</div>
       <div className="pl-4 border-l-2 border-green-400 text-green-400">{formatTime(time)} UTC</div>
-      <div className="pl-4 border-l-2 border-green-400 flex-1 text-yellow-400 animate-pulse">
+      <div className="pl-4 border-l-2 border-green-400 flex-1 truncate">
         {featuredEvent ? (
-          <span>FEATURED: {featuredEvent.title}</span>
+          <span className="text-yellow-400">FEATURED: {featuredEvent.title}</span>
         ) : (
-          <span>Waiting for events...</span>
+          <span className="text-green-400/40">Monitoring...</span>
         )}
       </div>
     </header>
