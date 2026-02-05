@@ -11,7 +11,9 @@
     "dev:server": "nodemon --watch src/server --exec tsx src/server/index.ts",
     "dev:renderer": "vite",
     "dev:electron": "electron-vite dev",
+    "prebuild": "npm run typecheck && npm test",
     "build": "npm run build:renderer && npm run build:server && npm run build:main",
+    "validate": "npm run typecheck && npm test && npm run lint && npm run build:renderer",
     "build:renderer": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "build:main": "tsc -p tsconfig.main.json",
@@ -27,8 +29,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@react-three/fiber": "^8.15.0",
     "@react-three/drei": "^9.96.0",
+    "@react-three/fiber": "^8.15.0",
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
@@ -44,10 +46,14 @@
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
     "@playwright/test": "^1.40.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
+    "@types/supertest": "^6.0.3",
     "@types/three": "^0.160.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
@@ -63,10 +69,12 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^8.0.3",
+    "jsdom": "^28.0.0",
     "lint-staged": "^15.2.0",
     "nodemon": "^3.0.2",
     "postcss": "^8.4.32",
     "prettier": "^3.1.1",
+    "supertest": "^7.2.2",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
@@ -90,13 +98,22 @@
     ],
     "mac": {
       "category": "public.app-category.utilities",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "linux": {
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   }
 }
