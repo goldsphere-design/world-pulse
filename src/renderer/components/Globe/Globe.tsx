@@ -1,133 +1,253 @@
+import { useRef, useMemo, useState, useCallback } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { useAppStore } from '../../store/useAppStore';
+import { createEarthTexture, latLonToVector3 } from './earthTexture';
+import type { Event } from '@shared/types';
 
-export function Globe() {
-  const { events, featuredEvent, setFeaturedEvent } = useAppStore();
+const GLOBE_RADIUS = 1;
 
-  // Get unique events with locations for pins
-  const eventsWithLocations = events.filter((e) => e.location).slice(0, 10);
+/** Atmosphere glow rendered on the backside of a slightly larger sphere */
+function Atmosphere() {
+  return (
+    <mesh>
+      <sphereGeometry args={[GLOBE_RADIUS * 1.04, 64, 32]} />
+      <meshBasicMaterial color="#00ff88" transparent opacity={0.04} side={THREE.BackSide} />
+    </mesh>
+  );
+}
 
-  // Simple projection to map lat/lon to x/y percentages on a flat map
-  const projectToMap = (lat: number, lon: number) => {
-    const x = ((lon + 180) / 360) * 100;
-    const y = ((90 - lat) / 180) * 100;
-    return { x, y };
-  };
+/** The main earth sphere with canvas texture */
+function EarthSphere() {
+  const texture = useMemo(() => createEarthTexture(), []);
 
   return (
-    <div className="bg-[#0f1419] border-2 border-green-400 p-4 flex flex-col items-center justify-center h-full">
+    <>
+      {/* Solid globe */}
+      <mesh>
+        <sphereGeometry args={[GLOBE_RADIUS, 64, 32]} />
+        <meshBasicMaterial map={texture} />
+      </mesh>
+      {/* Faint wireframe overlay for depth */}
+      <mesh>
+        <sphereGeometry args={[GLOBE_RADIUS * 1.002, 24, 12]} />
+        <meshBasicMaterial color="#00ff88" wireframe transparent opacity={0.04} />
+      </mesh>
+    </>
+  );
+}
+
+/** A single event marker on the globe surface */
+function EventMarker({
+  event,
+  isFeatured,
+  onClick,
+}: {
+  event: Event;
+  isFeatured: boolean;
+  onClick: () => void;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  const position = useMemo(() => {
+    if (!event.location) return new THREE.Vector3(0, 0, 0);
+    return latLonToVector3(event.location.lat, event.location.lon, GLOBE_RADIUS * 1.01);
+  }, [event.location]);
+
+  // Pulse animation for featured markers
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    if (isFeatured) {
+      const scale = 1 + Math.sin(clock.elapsedTime * 3) * 0.3;
+      ref.current.scale.setScalar(scale);
+    } else {
+      ref.current.scale.setScalar(1);
+    }
+  });
+
+  const color = isFeatured ? '#facc15' : '#ef4444';
+  const size = isFeatured ? 0.025 : 0.015;
+
+  return (
+    <mesh
+      ref={ref}
+      position={position}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <sphereGeometry args={[size, 8, 8]} />
+      <meshBasicMaterial color={color} />
+    </mesh>
+  );
+}
+
+/** Glow ring around event markers for visibility */
+function EventGlow({ event, isFeatured }: { event: Event; isFeatured: boolean }) {
+  const ref = useRef<THREE.Mesh>(null);
+  const position = useMemo(() => {
+    if (!event.location) return new THREE.Vector3(0, 0, 0);
+    return latLonToVector3(event.location.lat, event.location.lon, GLOBE_RADIUS * 1.008);
+  }, [event.location]);
+
+  // LookAt center so the ring faces outward
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    const mat = new THREE.Matrix4().lookAt(
+      position,
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 1, 0)
+    );
+    q.setFromRotationMatrix(mat);
+    return q;
+  }, [position]);
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    if (isFeatured) {
+      const scale = 1 + Math.sin(clock.elapsedTime * 2) * 0.5;
+      ref.current.scale.setScalar(scale);
+      (ref.current.material as THREE.MeshBasicMaterial).opacity =
+        0.4 - Math.sin(clock.elapsedTime * 2) * 0.2;
+    }
+  });
+
+  const color = isFeatured ? '#facc15' : '#ef4444';
+
+  return (
+    <mesh ref={ref} position={position} quaternion={quaternion}>
+      <ringGeometry args={[0.02, 0.04, 16]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={isFeatured ? 0.4 : 0.25}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+/** Container that auto-rotates and holds the globe + markers */
+function RotatingGlobe({ children, isPaused }: { children: React.ReactNode; isPaused: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+
+  useFrame((_, delta) => {
+    if (ref.current && !isPaused) {
+      ref.current.rotation.y += delta * 0.08;
+    }
+  });
+
+  return <group ref={ref}>{children}</group>;
+}
+
+/** All event markers as a group */
+function EventMarkers() {
+  const { events, featuredEvent, setFeaturedEvent } = useAppStore();
+
+  const eventsWithLocations = useMemo(
+    () => events.filter((e) => e.location).slice(0, 30),
+    [events]
+  );
+
+  return (
+    <group>
+      {eventsWithLocations.map((event) => {
+        const isFeatured = featuredEvent?.id === event.id;
+        return (
+          <group key={event.id}>
+            <EventMarker
+              event={event}
+              isFeatured={isFeatured}
+              onClick={() => setFeaturedEvent(event)}
+            />
+            <EventGlow event={event} isFeatured={isFeatured} />
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+/** Small background stars for ambiance */
+function Stars() {
+  const positions = useMemo(() => {
+    const arr = new Float32Array(600 * 3);
+    for (let i = 0; i < 600; i++) {
+      const r = 8 + Math.random() * 12;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      arr[i * 3 + 2] = r * Math.cos(phi);
+    }
+    return arr;
+  }, []);
+
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" array={positions} count={600} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial color="#00ff88" size={0.03} transparent opacity={0.4} />
+    </points>
+  );
+}
+
+/** Main Globe component */
+export function Globe() {
+  const [isInteracting, setIsInteracting] = useState(false);
+  const { events } = useAppStore();
+  const eventsWithLocations = events.filter((e) => e.location).length;
+
+  const handlePointerDown = useCallback(() => setIsInteracting(true), []);
+  const handlePointerUp = useCallback(() => {
+    // Resume rotation after a brief delay
+    setTimeout(() => setIsInteracting(false), 2000);
+  }, []);
+
+  return (
+    <div className="bg-[#0f1419] border-2 border-green-400 p-4 flex flex-col h-full">
       <div className="text-xs font-bold border-b border-green-400 pb-2 mb-3 uppercase text-green-400 w-full">
         GLOBE [GEOGRAPHIC VIEW]
       </div>
 
-      {/* Globe visualization container */}
-      <div className="relative w-80 h-80 flex-shrink-0">
-        {/* Globe circle */}
-        <div
-          className="w-full h-full rounded-full border-3 border-green-400 relative overflow-hidden"
-          style={{
-            background: 'radial-gradient(circle at 30% 30%, #1a3a3a, #0a1a1a)',
-            boxShadow: '0 0 30px rgba(0, 255, 136, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.5)',
-          }}
+      {/* 3D Globe Canvas */}
+      <div
+        className="flex-1 relative cursor-grab active:cursor-grabbing"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
+        <Canvas
+          camera={{ position: [0, 0.3, 2.4], fov: 45 }}
+          style={{ background: 'transparent' }}
+          gl={{ antialias: true, alpha: true }}
         >
-          {/* Grid lines */}
-          <div className="absolute inset-0 opacity-40">
-            {[20, 40, 50, 60, 80].map((pos) => (
-              <div
-                key={`h-${pos}`}
-                className="absolute w-full h-px bg-green-400"
-                style={{ top: `${pos}%` }}
-              />
-            ))}
-            {[20, 40, 50, 60, 80].map((pos) => (
-              <div
-                key={`v-${pos}`}
-                className="absolute h-full w-px bg-green-400"
-                style={{ left: `${pos}%` }}
-              />
-            ))}
-          </div>
-
-          {/* Simple continent outlines (stylized) */}
-          <div className="absolute inset-0 opacity-20">
-            {/* North America */}
-            <div
-              className="absolute border-2 border-green-400 bg-green-400/15"
-              style={{
-                top: '15%',
-                left: '8%',
-                width: '22%',
-                height: '35%',
-                clipPath:
-                  'polygon(30% 0%, 60% 5%, 85% 15%, 95% 45%, 80% 70%, 55% 85%, 40% 95%, 20% 80%, 10% 60%, 5% 30%, 15% 10%)',
-              }}
-            />
-            {/* Europe */}
-            <div
-              className="absolute border-2 border-green-400 bg-green-400/15"
-              style={{
-                top: '12%',
-                left: '43%',
-                width: '18%',
-                height: '22%',
-                clipPath:
-                  'polygon(5% 40%, 20% 10%, 45% 0%, 75% 15%, 90% 35%, 100% 60%, 85% 85%, 60% 100%, 30% 90%, 10% 70%)',
-              }}
-            />
-            {/* Asia */}
-            <div
-              className="absolute border-2 border-green-400 bg-green-400/15"
-              style={{
-                top: '8%',
-                left: '55%',
-                width: '38%',
-                height: '50%',
-                clipPath:
-                  'polygon(5% 35%, 15% 15%, 30% 5%, 50% 0%, 70% 8%, 85% 20%, 95% 40%, 100% 65%, 90% 85%, 70% 95%, 45% 100%, 25% 90%, 10% 70%, 0% 50%)',
-              }}
-            />
-          </div>
-
-          {/* Event pins */}
-          {eventsWithLocations.map((event) => {
-            if (!event.location) return null;
-            const { x, y } = projectToMap(event.location.lat, event.location.lon);
-            const isFeatured = featuredEvent?.id === event.id;
-
-            return (
-              <div
-                key={event.id}
-                className={`absolute w-3 h-3 rounded-full cursor-pointer transition-all z-10 ${
-                  isFeatured ? 'w-5 h-5 bg-yellow-400 animate-pulse' : 'bg-red-500'
-                }`}
-                style={{
-                  left: `${x}%`,
-                  top: `${y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  boxShadow: isFeatured ? '0 0 20px #facc15, 0 0 40px #facc15' : '0 0 10px #ef4444',
-                }}
-                onClick={() => setFeaturedEvent(event)}
-                title={event.title}
-              />
-            );
-          })}
-
-          {/* Center label */}
-          {eventsWithLocations.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-green-400/50 text-sm">No events to display</span>
-            </div>
-          )}
-        </div>
+          <Stars />
+          <RotatingGlobe isPaused={isInteracting}>
+            <EarthSphere />
+            <Atmosphere />
+            <EventMarkers />
+          </RotatingGlobe>
+          <OrbitControls
+            enableZoom={true}
+            enablePan={false}
+            minDistance={1.5}
+            maxDistance={5}
+            zoomSpeed={0.5}
+          />
+        </Canvas>
       </div>
 
       {/* Legend */}
-      <div className="mt-4 text-xs text-green-400/70 flex gap-4">
+      <div className="mt-2 text-xs text-green-400/70 flex gap-4 flex-shrink-0">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 bg-yellow-400 rounded-full" /> Featured
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 bg-red-500 rounded-full" /> Event
         </span>
+        <span className="ml-auto text-green-400/40">{eventsWithLocations} plotted</span>
       </div>
     </div>
   );
