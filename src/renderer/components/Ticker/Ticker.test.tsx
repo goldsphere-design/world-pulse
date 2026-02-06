@@ -27,13 +27,13 @@ describe('Ticker', () => {
 
   it('should show waiting message when no events', () => {
     render(<Ticker />);
-    expect(screen.getByText('Waiting for events...')).toBeInTheDocument();
+    expect(screen.getByText('AWAITING EVENTS...')).toBeInTheDocument();
   });
 
   it('should render event titles in ticker', () => {
     useAppStore.setState({ events: [mockEvent('1')] });
     render(<Ticker />);
-    // Text is split across nodes (emoji + title), so use a function matcher
+    // Text is split across nodes (symbol + title), so use a function matcher
     const titles = screen.getAllByText((_content, element) => {
       return !!(element?.textContent?.includes('Event 1') && element?.tagName === 'SPAN');
     });
@@ -51,24 +51,31 @@ describe('Ticker', () => {
       },
     });
     render(<Ticker />);
-    expect(screen.getByText('1 SOURCES ACTIVE')).toBeInTheDocument();
+    // New format: "SOURCES" label + value "1"
+    expect(screen.getByText('SOURCES')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('should show event count', () => {
     const events = [mockEvent('1'), mockEvent('2'), mockEvent('3')];
     useAppStore.setState({ events });
     render(<Ticker />);
-    expect(screen.getByText('3 EVENTS (24h)')).toBeInTheDocument();
+    // New format: "EVENTS" label + value "3" + "(24H)"
+    expect(screen.getByText('EVENTS')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('(24H)')).toBeInTheDocument();
   });
 
   it('should show version number', () => {
     render(<Ticker />);
-    expect(screen.getByText('WORLD PULSE v0.1.0')).toBeInTheDocument();
+    expect(screen.getByText('WORLD PULSE v0.2.0')).toBeInTheDocument();
   });
 
   it('should show refresh interval', () => {
     render(<Ticker />);
-    expect(screen.getByText('REFRESH: 5min')).toBeInTheDocument();
+    // New format: "INTERVAL" label + "5M" value
+    expect(screen.getByText('INTERVAL')).toBeInTheDocument();
+    expect(screen.getByText('5M')).toBeInTheDocument();
   });
 
   it('should limit ticker to 10 events', () => {

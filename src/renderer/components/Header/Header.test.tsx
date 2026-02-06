@@ -30,7 +30,7 @@ describe('Header', () => {
   it('should show CONNECTING when connecting', () => {
     useAppStore.setState({ connectionStatus: 'connecting' });
     render(<Header />);
-    expect(screen.getByText('CONNECTING...')).toBeInTheDocument();
+    expect(screen.getByText('CONNECTING')).toBeInTheDocument();
   });
 
   it('should show ERROR on connection error', () => {
@@ -39,9 +39,9 @@ describe('Header', () => {
     expect(screen.getByText('ERROR')).toBeInTheDocument();
   });
 
-  it('should show Monitoring when no featured event', () => {
+  it('should show MONITORING ACTIVE when no featured event', () => {
     render(<Header />);
-    expect(screen.getByText('Monitoring...')).toBeInTheDocument();
+    expect(screen.getByText('MONITORING ACTIVE')).toBeInTheDocument();
   });
 
   it('should show featured event title when available', () => {
@@ -59,7 +59,7 @@ describe('Header', () => {
     expect(screen.getByText(/M5.0 - Near Coast of Peru/)).toBeInTheDocument();
   });
 
-  it('should show FEATURED label with featured event', () => {
+  it('should show ALERT label with featured event', () => {
     useAppStore.setState({
       featuredEvent: {
         id: '1',
@@ -71,11 +71,11 @@ describe('Header', () => {
       },
     });
     render(<Header />);
-    expect(screen.getByText(/FEATURED/)).toBeInTheDocument();
+    expect(screen.getByText('ALERT')).toBeInTheDocument();
   });
 
   it('should display UTC time', () => {
     render(<Header />);
-    expect(screen.getByText(/UTC/)).toBeInTheDocument();
+    expect(screen.getByText('UTC')).toBeInTheDocument();
   });
 });

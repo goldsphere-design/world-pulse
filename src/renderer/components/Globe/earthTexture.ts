@@ -727,7 +727,22 @@ const COASTLINES: [number, number][][] = [
 ];
 
 /**
- * Generate a canvas-based earth texture with the retro terminal aesthetic.
+ * Oblivion-inspired color palette for the globe texture.
+ */
+const OBLIVION_COLORS = {
+  background: '#0A0A0F',
+  gridDot: 'rgba(200, 230, 240, 0.03)',
+  gridLine: 'rgba(0, 212, 255, 0.06)',
+  gridMajor: 'rgba(0, 212, 255, 0.12)',
+  coastline: 'rgba(0, 212, 255, 0.7)',
+  coastlineGlow: 'rgba(0, 212, 255, 0.3)',
+  landFill: 'rgba(0, 212, 255, 0.05)',
+  contourLine: 'rgba(0, 212, 255, 0.15)',
+};
+
+/**
+ * Generate a canvas-based earth texture with the Oblivion UI aesthetic.
+ * Features: dot grid, contour-style landmasses, cyan color scheme.
  * Uses equirectangular projection so it maps correctly onto a SphereGeometry.
  */
 export function createEarthTexture(): THREE.CanvasTexture {
@@ -738,37 +753,68 @@ export function createEarthTexture(): THREE.CanvasTexture {
   canvas.height = height;
   const ctx = canvas.getContext('2d')!;
 
-  // Background - deep dark blue-green
-  ctx.fillStyle = '#060d12';
+  // Background - deep black with slight blue tint
+  ctx.fillStyle = OBLIVION_COLORS.background;
   ctx.fillRect(0, 0, width, height);
 
   // Helper: convert lon/lat to canvas x/y
   const toX = (lon: number) => ((lon + 180) / 360) * width;
   const toY = (lat: number) => ((90 - lat) / 180) * height;
 
-  // Draw grid lines
-  ctx.strokeStyle = 'rgba(0, 255, 136, 0.06)';
-  ctx.lineWidth = 1;
+  // Draw dot grid background (Oblivion signature pattern)
+  ctx.fillStyle = OBLIVION_COLORS.gridDot;
+  const dotSpacing = 20;
+  for (let x = 0; x < width; x += dotSpacing) {
+    for (let y = 0; y < height; y += dotSpacing) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
-  // Latitude lines every 30 degrees
-  for (let lat = -60; lat <= 60; lat += 30) {
+  // Draw thin grid lines every 15 degrees
+  ctx.strokeStyle = OBLIVION_COLORS.gridLine;
+  ctx.lineWidth = 0.5;
+
+  // Latitude lines
+  for (let lat = -75; lat <= 75; lat += 15) {
     ctx.beginPath();
     ctx.moveTo(0, toY(lat));
     ctx.lineTo(width, toY(lat));
     ctx.stroke();
   }
 
-  // Longitude lines every 30 degrees
-  for (let lon = -150; lon <= 180; lon += 30) {
+  // Longitude lines
+  for (let lon = -165; lon <= 180; lon += 15) {
     ctx.beginPath();
     ctx.moveTo(toX(lon), 0);
     ctx.lineTo(toX(lon), height);
     ctx.stroke();
   }
 
-  // Equator - slightly brighter
-  ctx.strokeStyle = 'rgba(0, 255, 136, 0.12)';
-  ctx.lineWidth = 1.5;
+  // Major grid lines every 30 degrees (brighter)
+  ctx.strokeStyle = OBLIVION_COLORS.gridMajor;
+  ctx.lineWidth = 1;
+
+  for (let lat = -60; lat <= 60; lat += 30) {
+    ctx.beginPath();
+    ctx.setLineDash([8, 4]);
+    ctx.moveTo(0, toY(lat));
+    ctx.lineTo(width, toY(lat));
+    ctx.stroke();
+  }
+
+  for (let lon = -150; lon <= 180; lon += 30) {
+    ctx.beginPath();
+    ctx.moveTo(toX(lon), 0);
+    ctx.lineTo(toX(lon), height);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Equator - cyan accent line
+  ctx.strokeStyle = 'rgba(0, 212, 255, 0.25)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, toY(0));
   ctx.lineTo(width, toY(0));
@@ -780,16 +826,16 @@ export function createEarthTexture(): THREE.CanvasTexture {
   ctx.lineTo(toX(0), height);
   ctx.stroke();
 
-  // Draw continent fills (semi-transparent)
-  ctx.fillStyle = 'rgba(0, 255, 136, 0.07)';
+  // Draw continent fills with subtle gradient effect
   for (const coastline of COASTLINES) {
     if (coastline.length < 4) continue;
-    // Only fill closed shapes (first and last points are close)
     const first = coastline[0];
     const last = coastline[coastline.length - 1];
     const isClosed = Math.abs(first[0] - last[0]) < 5 && Math.abs(first[1] - last[1]) < 5;
     if (!isClosed) continue;
 
+    // Outer glow fill
+    ctx.fillStyle = OBLIVION_COLORS.landFill;
     ctx.beginPath();
     ctx.moveTo(toX(coastline[0][0]), toY(coastline[0][1]));
     for (let i = 1; i < coastline.length; i++) {
@@ -799,14 +845,74 @@ export function createEarthTexture(): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  // Draw coastline outlines
-  ctx.strokeStyle = 'rgba(0, 255, 136, 0.5)';
+  // Draw inner contour lines (topographic effect)
+  ctx.strokeStyle = OBLIVION_COLORS.contourLine;
+  ctx.lineWidth = 0.5;
+  for (const coastline of COASTLINES) {
+    if (coastline.length < 4) continue;
+    const first = coastline[0];
+    const last = coastline[coastline.length - 1];
+    const isClosed = Math.abs(first[0] - last[0]) < 5 && Math.abs(first[1] - last[1]) < 5;
+    if (!isClosed) continue;
+
+    // Draw inset contour lines
+    for (let inset = 0.92; inset >= 0.7; inset -= 0.08) {
+      // Calculate centroid
+      let cx = 0,
+        cy = 0;
+      for (const point of coastline) {
+        cx += point[0];
+        cy += point[1];
+      }
+      cx /= coastline.length;
+      cy /= coastline.length;
+
+      ctx.beginPath();
+      const firstPt = coastline[0];
+      const startX = cx + (firstPt[0] - cx) * inset;
+      const startY = cy + (firstPt[1] - cy) * inset;
+      ctx.moveTo(toX(startX), toY(startY));
+
+      for (let i = 1; i < coastline.length; i++) {
+        const pt = coastline[i];
+        const x = cx + (pt[0] - cx) * inset;
+        const y = cy + (pt[1] - cy) * inset;
+        ctx.lineTo(toX(x), toY(y));
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+
+  // Draw coastline glow (outer)
+  ctx.strokeStyle = OBLIVION_COLORS.coastlineGlow;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const coastline of COASTLINES) {
+    ctx.beginPath();
+    ctx.moveTo(toX(coastline[0][0]), toY(coastline[0][1]));
+    for (let i = 1; i < coastline.length; i++) {
+      const prevLon = coastline[i - 1][0];
+      const currLon = coastline[i][0];
+      if (Math.abs(currLon - prevLon) > 180) {
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(toX(currLon), toY(coastline[i][1]));
+      } else {
+        ctx.lineTo(toX(coastline[i][0]), toY(coastline[i][1]));
+      }
+    }
+    ctx.stroke();
+  }
+
+  // Draw coastline outlines (crisp inner line)
+  ctx.strokeStyle = OBLIVION_COLORS.coastline;
   ctx.lineWidth = 1.5;
   for (const coastline of COASTLINES) {
     ctx.beginPath();
     ctx.moveTo(toX(coastline[0][0]), toY(coastline[0][1]));
     for (let i = 1; i < coastline.length; i++) {
-      // Handle wrapping at the date line
       const prevLon = coastline[i - 1][0];
       const currLon = coastline[i][0];
       if (Math.abs(currLon - prevLon) > 180) {

@@ -22,28 +22,62 @@ export function Header() {
   const getConnectionIndicator = () => {
     switch (connectionStatus) {
       case 'connected':
-        return <span className="text-green-400">LIVE</span>;
+        return <span className="ob-status-nominal ob-text-glow">LIVE</span>;
       case 'connecting':
-        return <span className="text-yellow-400">CONNECTING...</span>;
+        return <span className="ob-status-warning">CONNECTING</span>;
       case 'disconnected':
-        return <span className="text-red-400">OFFLINE</span>;
+        return <span className="ob-status-critical">OFFLINE</span>;
       case 'error':
-        return <span className="text-red-400">ERROR</span>;
+        return <span className="ob-status-critical">ERROR</span>;
     }
   };
 
   return (
-    <header className="bg-[#0f1419] border-b-2 border-green-400 px-5 py-2.5 flex items-center gap-8 text-sm font-bold">
-      <div className="text-green-400">WORLD PULSE</div>
-      <div className="pl-4 border-l-2 border-green-400">{getConnectionIndicator()}</div>
-      <div className="pl-4 border-l-2 border-green-400 text-green-400">{formatTime(time)} UTC</div>
-      <div className="pl-4 border-l-2 border-green-400 flex-1 truncate">
+    <header className="bg-ob-bg-panel border-b border-ob-border px-5 py-3 flex items-center gap-8 text-sm">
+      {/* Logo/Title */}
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-2 rounded-full bg-ob-cyan ob-glow" />
+        <span className="ob-heading text-ob-cyan tracking-ultrawide">WORLD PULSE</span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-4 w-px bg-ob-border" />
+
+      {/* Connection Status */}
+      <div className="ob-label flex items-center gap-2">
+        <span className="text-ob-text-dim">STATUS</span>
+        <span className="font-medium">{getConnectionIndicator()}</span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-4 w-px bg-ob-border" />
+
+      {/* Time */}
+      <div className="ob-label flex items-center gap-2">
+        <span className="text-ob-text-dim">UTC</span>
+        <span className="ob-value text-ob-text tabular-nums">{formatTime(time)}</span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-4 w-px bg-ob-border" />
+
+      {/* Featured Event / Monitoring */}
+      <div className="flex-1 truncate">
         {featuredEvent ? (
-          <span className="text-yellow-400">FEATURED: {featuredEvent.title}</span>
+          <div className="flex items-center gap-2">
+            <span className="ob-label text-ob-amber">ALERT</span>
+            <span className="text-ob-amber ob-transition-snap">{featuredEvent.title}</span>
+          </div>
         ) : (
-          <span className="text-green-400/40">Monitoring...</span>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-ob-success animate-pulse" />
+            <span className="ob-label text-ob-text-dim">MONITORING ACTIVE</span>
+          </div>
         )}
       </div>
+
+      {/* Corner accent lines */}
+      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-ob-cyan opacity-40" />
     </header>
   );
 }
