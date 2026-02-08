@@ -51,6 +51,7 @@ export class AuroraCollector extends BaseCollector {
   private transform(entry: KpIndexEntry): AuroraEvent {
     const kpValue = parseFloat(entry.kp);
     const stormLevel = this.getStormLevel(kpValue);
+    const stormLevelType = this.getStormLevelType(kpValue);
     const severity = this.calculateSeverity(kpValue);
 
     // Aurora is visible at high latitudes
@@ -71,11 +72,7 @@ export class AuroraCollector extends BaseCollector {
       description: `${stormLevel} - ${visibility.description}`,
       data: {
         kpIndex: kpValue,
-        stormLevel: stormLevel.toLowerCase().replace(' ', '_') as
-          | 'quiet'
-          | 'unsettled'
-          | 'storm'
-          | 'severe',
+        stormLevel: stormLevelType,
         hemisphere: 'both',
       },
     };
@@ -88,6 +85,13 @@ export class AuroraCollector extends BaseCollector {
     if (kp >= 5) return 'Minor Storm';
     if (kp >= 4) return 'Unsettled';
     return 'Quiet';
+  }
+
+  private getStormLevelType(kp: number): 'quiet' | 'unsettled' | 'storm' | 'severe' {
+    if (kp >= 8) return 'severe';
+    if (kp >= 5) return 'storm';
+    if (kp >= 4) return 'unsettled';
+    return 'quiet';
   }
 
   private calculateSeverity(kp: number): number {

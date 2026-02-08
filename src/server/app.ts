@@ -62,7 +62,10 @@ export function createApp(options?: { corsOrigin?: string }) {
     httpServer,
     io,
     addEvents(events: Event[]) {
-      eventCache = [...events, ...eventCache].slice(0, MAX_EVENTS);
+      // Remove existing events with same IDs (deduplication)
+      const newIds = new Set(events.map((e) => e.id));
+      const filtered = eventCache.filter((e) => !newIds.has(e.id));
+      eventCache = [...events, ...filtered].slice(0, MAX_EVENTS);
     },
     getEventCache() {
       return eventCache;
