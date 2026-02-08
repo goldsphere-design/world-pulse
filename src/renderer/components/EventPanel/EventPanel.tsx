@@ -15,6 +15,11 @@ function getEventTypeLabel(type: string): string {
     weather: 'WEATHER',
     news: 'NEWS',
     astronomy: 'ASTRO',
+    volcano: 'VOLCANO',
+    iss: 'ISS',
+    aurora: 'AURORA',
+    asteroid: 'ASTEROID',
+    planet: 'PLANET',
   };
   return labels[type] || type.toUpperCase();
 }

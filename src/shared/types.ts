@@ -21,6 +21,11 @@ export type EventType =
   | 'weather'
   | 'news'
   | 'astronomy'
+  | 'volcano'
+  | 'iss'
+  | 'aurora'
+  | 'asteroid'
+  | 'planet'
   | 'music'
   | 'ocean'
   | 'calendar'
@@ -69,6 +74,75 @@ export interface NewsEvent extends Event {
     url: string;
     sentiment: number; // -1 to 1 (negative to positive)
     category: string;
+  };
+}
+
+/**
+ * Volcano-specific event data
+ */
+export interface VolcanoEvent extends Event {
+  type: 'volcano';
+  data: {
+    volcanoName: string;
+    alertLevel: 'normal' | 'advisory' | 'watch' | 'warning';
+    colorCode: 'green' | 'yellow' | 'orange' | 'red';
+  };
+}
+
+/**
+ * ISS position event data
+ */
+export interface ISSEvent extends Event {
+  type: 'iss';
+  data: {
+    altitude: number; // km
+    velocity: number; // km/h
+    visibility: 'daylight' | 'eclipsed';
+  };
+}
+
+/**
+ * Aurora/Space Weather event data
+ */
+export interface AuroraEvent extends Event {
+  type: 'aurora';
+  data: {
+    kpIndex: number; // 0-9
+    stormLevel: 'quiet' | 'unsettled' | 'storm' | 'severe';
+    hemisphere: 'north' | 'south' | 'both';
+  };
+}
+
+/**
+ * Near-Earth Asteroid event data
+ */
+export interface AsteroidEvent extends Event {
+  type: 'asteroid';
+  data: {
+    name: string;
+    diameterMin: number; // meters
+    diameterMax: number; // meters
+    velocity: number; // km/h
+    missDistance: number; // km
+    hazardous: boolean;
+    approachDate: string;
+  };
+}
+
+/**
+ * Planet visibility event data
+ */
+export interface PlanetEvent extends Event {
+  type: 'planet';
+  data: {
+    planetName: string;
+    constellation: string;
+    magnitude: number; // apparent brightness
+    altitude: number; // degrees above horizon
+    azimuth: number; // compass direction
+    riseTime: string;
+    setTime: string;
+    phase?: number; // for Moon, 0-1
   };
 }
 

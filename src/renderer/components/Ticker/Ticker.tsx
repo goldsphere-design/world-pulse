@@ -15,6 +15,11 @@ function getEventIndicator(type: string, severity?: number): { color: string; sy
     weather: '\u25B2', // triangle
     news: '\u25A0', // square
     astronomy: '\u2605', // star
+    volcano: '\u25B3', // triangle up (hollow)
+    iss: '\u2302', // house/station
+    aurora: '\u2248', // wavy lines
+    asteroid: '\u2736', // six-pointed star
+    planet: '\u25CB', // circle (hollow)
   };
 
   return { color, symbol: symbols[type] || '\u25CF' }; // default: circle
