@@ -13,7 +13,7 @@ export interface Event {
   severity?: number; // 0-10 scale for visualization
   title: string;
   description?: string;
-  data: Record<string, any>; // Source-specific data
+  data: Record<string, unknown>; // Source-specific data
 }
 
 export type EventType =
@@ -185,6 +185,6 @@ export interface UserSettings {
  */
 export interface WSMessage {
   type: 'event' | 'update' | 'error' | 'ping';
-  payload: any;
+  payload: Event | Event[] | string | null;
   timestamp: number;
 }
