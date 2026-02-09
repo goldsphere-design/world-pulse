@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   OBLIVION UI DESIGN SYSTEM
+   Based on GMUNK's motion graphics for Oblivion (2013)
+   ============================================ */
+
+:root {
+  /* Oblivion Color Palette */
+  --ob-bg-primary: #0A0A0F;
+  --ob-bg-panel: #101820;
+  --ob-bg-elevated: #141C26;
+  --ob-text-primary: #C8E6F0;
+  --ob-text-dim: rgba(200, 230, 240, 0.5);
+  --ob-accent-cyan: #00D4FF;
+  --ob-accent-cyan-dim: rgba(0, 212, 255, 0.6);
+  --ob-accent-amber: #FF8C42;
+  --ob-accent-amber-dim: rgba(255, 140, 66, 0.6);
+  --ob-success: #4AE68A;
+  --ob-danger: #FF3D3D;
+  --ob-warning: #FFB020;
+  --ob-grid-dot: rgba(200, 230, 240, 0.05);
+  --ob-border-subtle: rgba(200, 230, 240, 0.12);
+  --ob-border-active: rgba(0, 212, 255, 0.4);
+  --ob-glow-cyan: rgba(0, 212, 255, 0.3);
+  --ob-glow-amber: rgba(255, 140, 66, 0.3);
+
+  /* Typography */
+  --ob-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  --ob-letter-spacing-wide: 0.2em;
+  --ob-letter-spacing-normal: 0.05em;
+
+  /* Motion Timing */
+  --ob-timing-glitch: 60ms;
+  --ob-timing-snap: 120ms;
+  --ob-timing-fade: 300ms;
+  --ob-timing-pulse: 3s;
+  --ob-timing-sweep: 6s;
+  --ob-easing-mechanical: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ob-easing-snap: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -9,15 +49,268 @@
 }
 
 body {
-  font-family: 'Courier New', Consolas, Monaco, monospace;
+  font-family: var(--ob-font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #0a0e1a;
-  color: #00ff88;
+  background: var(--ob-bg-primary);
+  color: var(--ob-text-primary);
   overflow: hidden;
 }
 
-/* Ticker scroll animation */
+/* ============================================
+   DOT GRID BACKGROUND
+   ============================================ */
+.ob-dot-grid {
+  background-image: radial-gradient(
+    circle at center,
+    var(--ob-grid-dot) 1px,
+    transparent 1px
+  );
+  background-size: 40px 40px;
+  background-position: center center;
+}
+
+/* Animated dot grid with subtle pulse */
+.ob-dot-grid-animated {
+  animation: dotGridPulse var(--ob-timing-pulse) ease-in-out infinite;
+}
+
+@keyframes dotGridPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================
+   PANEL SYSTEM WITH CORNER TICKS
+   ============================================ */
+.ob-panel {
+  position: relative;
+  background: var(--ob-bg-panel);
+  border: 1px solid var(--ob-border-subtle);
+}
+
+/* Corner tick marks */
+.ob-panel::before,
+.ob-panel::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--ob-accent-cyan);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.ob-panel::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.ob-panel::after {
+  top: -1px;
+  right: -1px;
+  border-width: 1px 1px 0 0;
+}
+
+/* Additional corner ticks via pseudo-elements on inner container */
+.ob-panel-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ob-panel-inner::before,
+.ob-panel-inner::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--ob-accent-cyan);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.ob-panel-inner::before {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 1px 1px;
+}
+
+.ob-panel-inner::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* Active/selected panel state */
+.ob-panel-active {
+  border-color: var(--ob-border-active);
+  box-shadow:
+    0 0 20px var(--ob-glow-cyan),
+    inset 0 0 30px rgba(0, 212, 255, 0.03);
+}
+
+.ob-panel-active::before,
+.ob-panel-active::after {
+  border-color: var(--ob-accent-cyan);
+  filter: drop-shadow(0 0 4px var(--ob-accent-cyan));
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.ob-heading {
+  font-family: var(--ob-font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--ob-letter-spacing-wide);
+  font-weight: 300;
+  color: var(--ob-text-primary);
+}
+
+.ob-label {
+  font-family: var(--ob-font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--ob-letter-spacing-normal);
+  font-size: 0.7rem;
+  color: var(--ob-text-dim);
+}
+
+.ob-value {
+  font-family: var(--ob-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ob-text-primary);
+}
+
+.ob-value-highlight {
+  color: var(--ob-accent-cyan);
+  text-shadow: 0 0 10px var(--ob-glow-cyan);
+}
+
+/* ============================================
+   SCAN LINE EFFECT
+   ============================================ */
+.ob-scanline {
+  position: relative;
+  overflow: hidden;
+}
+
+.ob-scanline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ob-accent-cyan) 50%,
+    transparent 100%
+  );
+  opacity: 0.4;
+  animation: scanlineSweep var(--ob-timing-sweep) linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanlineSweep {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ============================================
+   BREATHING GLOW EFFECT
+   ============================================ */
+.ob-glow {
+  animation: breathingGlow var(--ob-timing-pulse) ease-in-out infinite;
+}
+
+@keyframes breathingGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--ob-glow-cyan);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--ob-glow-cyan), 0 0 40px rgba(0, 212, 255, 0.1);
+  }
+}
+
+.ob-text-glow {
+  animation: textBreathingGlow var(--ob-timing-pulse) ease-in-out infinite;
+}
+
+@keyframes textBreathingGlow {
+  0%, 100% {
+    text-shadow: 0 0 5px var(--ob-glow-cyan);
+  }
+  50% {
+    text-shadow: 0 0 15px var(--ob-glow-cyan), 0 0 30px rgba(0, 212, 255, 0.2);
+  }
+}
+
+/* ============================================
+   GLITCH EFFECT
+   ============================================ */
+.ob-glitch {
+  animation: glitchEffect var(--ob-timing-glitch) linear;
+}
+
+@keyframes glitchEffect {
+  0% {
+    transform: translate(0);
+    filter: none;
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    filter: hue-rotate(-90deg);
+  }
+  60% {
+    transform: translate(-1px, -1px);
+    filter: saturate(2);
+  }
+  80% {
+    transform: translate(1px, 1px);
+    filter: none;
+  }
+  100% {
+    transform: translate(0);
+    filter: none;
+  }
+}
+
+/* ============================================
+   STATUS INDICATORS
+   ============================================ */
+.ob-status-nominal {
+  color: var(--ob-success);
+}
+
+.ob-status-warning {
+  color: var(--ob-accent-amber);
+  animation: warningPulse 1s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.ob-status-critical {
+  color: var(--ob-danger);
+  animation: criticalPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes criticalPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================
+   TICKER SCROLL ANIMATION
+   ============================================ */
 @keyframes scroll {
   from {
     transform: translateX(0);
@@ -31,20 +324,154 @@ body {
   animation: scroll 30s linear infinite;
 }
 
-/* Custom scrollbar for event panel */
+/* ============================================
+   BOOT SEQUENCE ANIMATION
+   ============================================ */
+.ob-boot-fade-in {
+  animation: bootFadeIn 0.5s var(--ob-easing-snap) forwards;
+  opacity: 0;
+}
+
+@keyframes bootFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ob-boot-glitch-in {
+  animation: bootGlitchIn 0.3s var(--ob-easing-snap) forwards;
+}
+
+@keyframes bootGlitchIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+    filter: blur(4px);
+  }
+  30% {
+    opacity: 0.5;
+    transform: translateX(5px);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(-2px);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+/* Staggered boot delays */
+.ob-boot-delay-1 { animation-delay: 0.1s; }
+.ob-boot-delay-2 { animation-delay: 0.2s; }
+.ob-boot-delay-3 { animation-delay: 0.3s; }
+.ob-boot-delay-4 { animation-delay: 0.4s; }
+.ob-boot-delay-5 { animation-delay: 0.5s; }
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0e1a;
+  background: var(--ob-bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00ff88;
-  border-radius: 3px;
+  background: var(--ob-border-subtle);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00cc6a;
+  background: var(--ob-accent-cyan);
+}
+
+/* ============================================
+   ARC GAUGE COMPONENT
+   ============================================ */
+.ob-arc-gauge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ob-arc-gauge svg {
+  transform: rotate(-90deg);
+}
+
+.ob-arc-gauge-track {
+  fill: none;
+  stroke: var(--ob-border-subtle);
+  stroke-width: 2;
+}
+
+.ob-arc-gauge-fill {
+  fill: none;
+  stroke: var(--ob-accent-cyan);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--ob-timing-snap) var(--ob-easing-snap);
+}
+
+.ob-arc-gauge-fill-warning {
+  stroke: var(--ob-accent-amber);
+}
+
+.ob-arc-gauge-fill-danger {
+  stroke: var(--ob-danger);
+}
+
+.ob-arc-gauge-value {
+  position: absolute;
+  font-family: var(--ob-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ob-text-primary);
+}
+
+/* ============================================
+   PULSING RING MARKER
+   ============================================ */
+.ob-pulse-ring {
+  position: absolute;
+  border: 1px solid var(--ob-accent-cyan);
+  border-radius: 50%;
+  animation: pulseRingExpand 2s ease-out infinite;
+}
+
+@keyframes pulseRingExpand {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.ob-border-glow {
+  box-shadow: 0 0 10px var(--ob-glow-cyan);
+}
+
+.ob-transition-snap {
+  transition: all var(--ob-timing-snap) var(--ob-easing-snap);
+}
+
+.ob-transition-fade {
+  transition: all var(--ob-timing-fade) var(--ob-easing-mechanical);
 }

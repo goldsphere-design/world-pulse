@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 import { createApp } from './app';
 import { EarthquakeCollector } from './collectors/earthquakes';
+import { ISSCollector } from './collectors/iss';
+import { AuroraCollector } from './collectors/aurora';
+import { AsteroidCollector } from './collectors/asteroids';
+import { VolcanoCollector } from './collectors/volcanoes';
+import { PlanetCollector } from './collectors/planets';
 
 // Load environment variables
 dotenv.config();
@@ -11,26 +16,36 @@ const { httpServer, io, addEvents, setCollectors } = createApp({
   corsOrigin: process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173',
 });
 
-// Initialize collectors
-const earthquakeCollector = new EarthquakeCollector();
-const collectors = [earthquakeCollector];
+// Initialize all collectors
+const collectors = [
+  new EarthquakeCollector(),
+  new ISSCollector(),
+  new AuroraCollector(),
+  new AsteroidCollector(),
+  new VolcanoCollector(),
+  new PlanetCollector(),
+];
+
 setCollectors(collectors);
 
 // Start collectors and emit events via Socket.io
 function startCollectors() {
   console.log('[Server] Starting data collectors...');
 
-  earthquakeCollector.start((events) => {
-    addEvents(events);
-    io.emit('events:new', { events, timestamp: Date.now() });
-    console.log(`[Server] Emitted ${events.length} earthquake events to clients`);
-  });
+  for (const collector of collectors) {
+    collector.start((events) => {
+      addEvents(events);
+      io.emit('events:new', { events, timestamp: Date.now() });
+      console.log(`[Server] Emitted ${events.length} ${collector.type} events to clients`);
+    });
+  }
 }
 
 // Start server
 httpServer.listen(PORT, () => {
   console.log(`[Server] Running on http://localhost:${PORT}`);
   console.log(`[Socket.io] WebSocket server ready`);
+  console.log(`[Server] ${collectors.length} collectors configured`);
 
   // Start collectors after server is running
   startCollectors();

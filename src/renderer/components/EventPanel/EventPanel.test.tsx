@@ -28,18 +28,20 @@ describe('EventPanel', () => {
 
   it('should render the events header', () => {
     render(<EventPanel />);
-    expect(screen.getByText(/EVENTS/)).toBeInTheDocument();
+    expect(screen.getByText('EVENTS')).toBeInTheDocument();
   });
 
   it('should show event count in header', () => {
     useAppStore.setState({ events: [mockEvent('1'), mockEvent('2')] });
     render(<EventPanel />);
-    expect(screen.getByText(/EVENTS \[2\]/)).toBeInTheDocument();
+    // New format: "EVENTS" + "[2]" in separate elements
+    expect(screen.getByText('EVENTS')).toBeInTheDocument();
+    expect(screen.getByText('[2]')).toBeInTheDocument();
   });
 
   it('should show waiting message when no events', () => {
     render(<EventPanel />);
-    expect(screen.getByText('Waiting for events...')).toBeInTheDocument();
+    expect(screen.getByText('AWAITING DATA')).toBeInTheDocument();
   });
 
   it('should render event titles', () => {
@@ -52,7 +54,7 @@ describe('EventPanel', () => {
   it('should render event type label', () => {
     useAppStore.setState({ events: [mockEvent('1')] });
     render(<EventPanel />);
-    expect(screen.getByText(/SEISMIC/)).toBeInTheDocument();
+    expect(screen.getByText('SEISMIC')).toBeInTheDocument();
   });
 
   it('should render event location', () => {
@@ -71,7 +73,7 @@ describe('EventPanel', () => {
     const event = mockEvent('1');
     useAppStore.setState({ events: [event], featuredEvent: event });
     render(<EventPanel />);
-    expect(screen.getByText(/FEATURED/)).toBeInTheDocument();
+    expect(screen.getByText('FEATURED')).toBeInTheDocument();
   });
 
   it('should set featured event on click', () => {
@@ -89,7 +91,7 @@ describe('EventPanel', () => {
     render(<EventPanel />);
 
     // Should show 20 event items, not 30
-    const eventItems = screen.getAllByText(/SEISMIC/);
+    const eventItems = screen.getAllByText('SEISMIC');
     expect(eventItems.length).toBeLessThanOrEqual(20);
   });
 
@@ -99,6 +101,7 @@ describe('EventPanel', () => {
     });
     useAppStore.setState({ events: [event] });
     render(<EventPanel />);
-    expect(screen.getByText('35.7, 139.7')).toBeInTheDocument();
+    // New format uses 2 decimal places
+    expect(screen.getByText('35.70, 139.70')).toBeInTheDocument();
   });
 });
