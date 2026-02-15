@@ -21,11 +21,15 @@ export function Dashboard() {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 grid grid-cols-[1.5fr_1fr] gap-4 p-4 overflow-hidden">
-        <div className={isBooted ? 'ob-boot-fade-in ob-boot-delay-2' : 'opacity-0'}>
+      <main className="flex-1 min-h-0 grid grid-cols-[1.5fr_1fr] grid-rows-[1fr] gap-4 p-4 overflow-hidden">
+        <div
+          className={`min-h-0 ${isBooted ? 'ob-boot-fade-in ob-boot-delay-2' : 'opacity-0'}`}
+        >
           <Globe />
         </div>
-        <div className={isBooted ? 'ob-boot-fade-in ob-boot-delay-3' : 'opacity-0'}>
+        <div
+          className={`min-h-0 ${isBooted ? 'ob-boot-fade-in ob-boot-delay-3' : 'opacity-0'}`}
+        >
           <EventPanel />
         </div>
       </main>
