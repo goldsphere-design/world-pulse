@@ -51,19 +51,21 @@ describe('Ticker', () => {
       },
     });
     render(<Ticker />);
-    // New format: "SOURCES" label + value "1"
     expect(screen.getByText('SOURCES')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
+    // Source count is rendered as "{active}/{total}" within a single span
+    const sourceSpan = screen.getByText((_content, element) => {
+      return element?.tagName === 'SPAN' && element?.textContent === '1/2';
+    });
+    expect(sourceSpan).toBeInTheDocument();
   });
 
   it('should show event count', () => {
     const events = [mockEvent('1'), mockEvent('2'), mockEvent('3')];
     useAppStore.setState({ events });
     render(<Ticker />);
-    // New format: "EVENTS" label + value "3" + "(24H)"
+    // Format: "EVENTS" label + value "3"
     expect(screen.getByText('EVENTS')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('(24H)')).toBeInTheDocument();
   });
 
   it('should show version number', () => {

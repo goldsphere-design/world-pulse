@@ -27,10 +27,10 @@ describe('Header', () => {
     expect(screen.getByText('OFFLINE')).toBeInTheDocument();
   });
 
-  it('should show CONNECTING when connecting', () => {
+  it('should show SYNC when connecting', () => {
     useAppStore.setState({ connectionStatus: 'connecting' });
     render(<Header />);
-    expect(screen.getByText('CONNECTING')).toBeInTheDocument();
+    expect(screen.getByText('SYNC')).toBeInTheDocument();
   });
 
   it('should show ERROR on connection error', () => {

@@ -15,36 +15,62 @@ const OB_COLORS = {
   amber: '#FF8C42',
   danger: '#FF3D3D',
   atmosphere: '#00D4FF',
+  atmosphereWarm: '#1a2a3a',
   stars: '#C8E6F0',
 };
 
 /** Atmosphere glow rendered on the backside of a slightly larger sphere */
 function Atmosphere() {
   return (
-    <mesh>
-      <sphereGeometry args={[GLOBE_RADIUS * 1.06, 64, 32]} />
-      <meshBasicMaterial
-        color={OB_COLORS.atmosphere}
-        transparent
-        opacity={0.03}
-        side={THREE.BackSide}
-      />
-    </mesh>
+    <>
+      {/* Inner atmosphere - subtle blue tint */}
+      <mesh>
+        <sphereGeometry args={[GLOBE_RADIUS * 1.04, 64, 32]} />
+        <meshBasicMaterial
+          color={OB_COLORS.atmosphere}
+          transparent
+          opacity={0.025}
+          side={THREE.BackSide}
+        />
+      </mesh>
+      {/* Outer atmosphere - wider glow */}
+      <mesh>
+        <sphereGeometry args={[GLOBE_RADIUS * 1.1, 64, 32]} />
+        <meshBasicMaterial
+          color={OB_COLORS.atmosphere}
+          transparent
+          opacity={0.012}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </>
   );
 }
 
 /** Outer atmosphere ring for additional depth */
 function AtmosphereRing() {
   return (
-    <mesh rotation={[Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[GLOBE_RADIUS * 1.02, GLOBE_RADIUS * 1.08, 64]} />
-      <meshBasicMaterial
-        color={OB_COLORS.cyan}
-        transparent
-        opacity={0.08}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[GLOBE_RADIUS * 1.02, GLOBE_RADIUS * 1.06, 64]} />
+        <meshBasicMaterial
+          color={OB_COLORS.cyan}
+          transparent
+          opacity={0.06}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Second thinner ring for depth */}
+      <mesh rotation={[Math.PI / 2, 0.1, 0.05]}>
+        <ringGeometry args={[GLOBE_RADIUS * 1.08, GLOBE_RADIUS * 1.09, 64]} />
+        <meshBasicMaterial
+          color={OB_COLORS.cyan}
+          transparent
+          opacity={0.03}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </>
   );
 }
 
@@ -62,7 +88,7 @@ function EarthSphere() {
       {/* Faint wireframe overlay for depth */}
       <mesh>
         <sphereGeometry args={[GLOBE_RADIUS * 1.002, 36, 18]} />
-        <meshBasicMaterial color={OB_COLORS.cyan} wireframe transparent opacity={0.03} />
+        <meshBasicMaterial color={OB_COLORS.cyan} wireframe transparent opacity={0.025} />
       </mesh>
     </>
   );
@@ -100,6 +126,9 @@ function EventMarker({
     if (!ref.current) return;
     if (isFeatured) {
       const scale = 1 + Math.sin(clock.elapsedTime * 3) * 0.3;
+      ref.current.scale.setScalar(scale);
+    } else if (event.severity !== undefined && event.severity >= 5) {
+      const scale = 1 + Math.sin(clock.elapsedTime * 2) * 0.1;
       ref.current.scale.setScalar(scale);
     } else {
       ref.current.scale.setScalar(1);
@@ -257,8 +286,8 @@ function EventMarkers() {
 /** Small background stars for ambiance */
 function Stars() {
   const positions = useMemo(() => {
-    const arr = new Float32Array(800 * 3);
-    for (let i = 0; i < 800; i++) {
+    const arr = new Float32Array(1200 * 3);
+    for (let i = 0; i < 1200; i++) {
       const r = 8 + Math.random() * 15;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
@@ -272,9 +301,9 @@ function Stars() {
   return (
     <points>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" array={positions} count={800} itemSize={3} />
+        <bufferAttribute attach="attributes-position" array={positions} count={1200} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial color={OB_COLORS.stars} size={0.02} transparent opacity={0.3} />
+      <pointsMaterial color={OB_COLORS.stars} size={0.02} transparent opacity={0.25} />
     </points>
   );
 }
@@ -282,7 +311,7 @@ function Stars() {
 /** Main Globe component */
 export function Globe() {
   const [isInteracting, setIsInteracting] = useState(false);
-  const { events } = useAppStore();
+  const { events, featuredEvent } = useAppStore();
   const eventsWithLocations = events.filter((e) => e.location).length;
 
   const handlePointerDown = useCallback(() => setIsInteracting(true), []);
@@ -291,16 +320,22 @@ export function Globe() {
     setTimeout(() => setIsInteracting(false), 2000);
   }, []);
 
+  // Count events by severity for legend stats
+  const highSevCount = events.filter((e) => e.severity !== undefined && e.severity >= 7).length;
+  const medSevCount = events.filter(
+    (e) => e.severity !== undefined && e.severity >= 4 && e.severity < 7
+  ).length;
+
   return (
     <div className="ob-panel p-4 flex flex-col h-full">
       <div className="ob-panel-inner flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-ob-border pb-3 mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between pb-3 mb-3">
+          <div className="ob-section-header flex-1">
             <span className="ob-heading text-sm text-ob-text tracking-wide">GLOBE</span>
-            <span className="ob-label text-ob-cyan">[GEOGRAPHIC]</span>
+            <span className="ob-label text-ob-cyan text-[10px]">[GEOGRAPHIC]</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5 ml-3">
             <div className="w-1 h-1 rounded-full bg-ob-cyan animate-pulse" />
             <span className="ob-label text-[9px] text-ob-text-dim">3D VIEW</span>
           </div>
@@ -334,23 +369,32 @@ export function Globe() {
           </Canvas>
         </div>
 
-        {/* Legend */}
-        <div className="mt-3 pt-3 border-t border-ob-border flex items-center gap-4 text-[10px]">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-ob-amber" />
-            <span className="ob-label text-ob-text-dim">FEATURED</span>
+        {/* Legend & Stats */}
+        <div className="mt-3 pt-3 border-t border-ob-border">
+          <div className="flex items-center justify-between">
+            {/* Legend dots */}
+            <div className="flex items-center gap-4 text-[10px]">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-ob-amber" />
+                <span className="ob-label text-ob-text-dim">
+                  FEATURED{featuredEvent ? ' 1' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-ob-danger" />
+                <span className="ob-label text-ob-text-dim">HIGH {highSevCount}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-ob-cyan" />
+                <span className="ob-label text-ob-text-dim">EVENT {medSevCount}</span>
+              </div>
+            </div>
+
+            {/* Plotted count */}
+            <span className="ob-label text-ob-text-dim text-[10px] tabular-nums">
+              {eventsWithLocations} PLOTTED
+            </span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-ob-danger" />
-            <span className="ob-label text-ob-text-dim">HIGH SEV</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-ob-cyan" />
-            <span className="ob-label text-ob-text-dim">EVENT</span>
-          </div>
-          <span className="ml-auto ob-label text-ob-text-dim tabular-nums">
-            {eventsWithLocations} PLOTTED
-          </span>
         </div>
       </div>
     </div>

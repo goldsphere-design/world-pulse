@@ -1,71 +1,117 @@
+import { useState, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+
+interface BootLine {
+  text: string;
+  status: 'ok' | 'pending' | 'error';
+  delay: number;
+}
 
 export function LoadingScreen() {
   const { connectionStatus, serverStatus } = useAppStore();
+  const [visibleLines, setVisibleLines] = useState(0);
+  const [showCursor, setShowCursor] = useState(true);
 
-  const getStatusMessage = () => {
-    switch (connectionStatus) {
-      case 'connecting':
-        return 'Connecting to server...';
-      case 'connected':
-        return serverStatus?.ready ? 'Loading data...' : 'Waiting for collectors...';
-      case 'disconnected':
-        return 'Disconnected. Reconnecting...';
-      case 'error':
-        return 'Connection error. Retrying...';
-    }
-  };
+  const bootLines: BootLine[] = [
+    { text: 'WORLD PULSE SYSTEM v0.2.0', status: 'ok', delay: 200 },
+    { text: 'Initializing subsystems', status: 'ok', delay: 400 },
+    {
+      text: `Backend connection: ${connectionStatus}`,
+      status: connectionStatus === 'connected' ? 'ok' : 'pending',
+      delay: 600,
+    },
+    {
+      text: `Data collectors: ${serverStatus ? serverStatus.collectors.filter((c) => c.running).length + ' active' : 'awaiting'}`,
+      status: serverStatus?.collectors.some((c) => c.running) ? 'ok' : 'pending',
+      delay: 800,
+    },
+    { text: 'Loading globe renderer', status: 'pending', delay: 1000 },
+    { text: 'Establishing data stream', status: 'pending', delay: 1200 },
+  ];
 
-  const getStatusIcon = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return '✓';
-      case 'connecting':
-        return '...';
-      case 'disconnected':
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    bootLines.forEach((_, i) => {
+      timers.push(setTimeout(() => setVisibleLines(i + 1), bootLines[i].delay));
+    });
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionStatus, serverStatus]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setShowCursor((prev) => !prev), 530);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusIndicator = (status: BootLine['status']) => {
+    switch (status) {
+      case 'ok':
+        return <span className="text-ob-success">OK</span>;
+      case 'pending':
+        return <span className="text-ob-amber animate-pulse">...</span>;
       case 'error':
-        return '✗';
+        return <span className="text-ob-danger">ERR</span>;
     }
   };
 
   return (
-    <div className="w-screen h-screen bg-[#0a0e1a] text-green-400 flex items-center justify-center font-mono">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold mb-4">WORLD PULSE</h1>
-        <div className="text-xl opacity-70 mb-8">{getStatusMessage()}</div>
-
-        {/* Loading animation */}
-        <div className="flex justify-center gap-2 mb-8">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-3 h-3 bg-green-400 rounded-full animate-bounce"
-              style={{ animationDelay: `${i * 0.15}s` }}
-            />
-          ))}
-        </div>
-
-        {/* Status indicators */}
-        <div className="text-sm opacity-50 space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <span
-              className={connectionStatus === 'connected' ? 'text-green-400' : 'text-yellow-400'}
-            >
-              {getStatusIcon()}
-            </span>
-            <span>Backend: {connectionStatus}</span>
+    <div className="w-screen h-screen bg-ob-bg-primary flex items-center justify-center font-mono ob-dot-grid">
+      <div className="w-full max-w-lg px-8">
+        {/* Title with glow */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-light tracking-ultrawide text-ob-cyan ob-readout-value">
+            WORLD PULSE
+          </h1>
+          <div className="ob-divider mt-4" />
+          <div className="mt-3 text-xs tracking-wide text-ob-text-dim uppercase">
+            Global Event Monitoring System
           </div>
-          {serverStatus && (
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-green-400">✓</span>
-              <span>
-                Collectors: {serverStatus.collectors.filter((c) => c.running).length} active
-              </span>
-            </div>
-          )}
         </div>
 
-        <div className="mt-8 text-xs opacity-30">Phase 1 - MVP Development</div>
+        {/* Boot sequence terminal */}
+        <div className="ob-panel p-5">
+          <div className="ob-panel-inner">
+            <div className="text-xs space-y-2">
+              {bootLines.slice(0, visibleLines).map((line, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-4 ob-boot-line"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-ob-cyan/60">&gt;</span>
+                    <span className="text-ob-text">{line.text}</span>
+                  </div>
+                  <span className="ob-label text-[10px]">[{getStatusIndicator(line.status)}]</span>
+                </div>
+              ))}
+              {visibleLines < bootLines.length && (
+                <div className="flex items-center gap-1 text-ob-cyan/40">
+                  <span>&gt;</span>
+                  {showCursor && <span className="ob-terminal-cursor" />}
+                </div>
+              )}
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-6">
+              <div className="ob-progress-track">
+                <div
+                  className="ob-progress-fill"
+                  style={{ width: `${(visibleLines / bootLines.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Status footer */}
+        <div className="mt-6 flex items-center justify-between text-[10px]">
+          <span className="ob-label text-ob-text-dim">BOOT SEQUENCE</span>
+          <span className="ob-label text-ob-text-dim tabular-nums">
+            {visibleLines}/{bootLines.length} SUBSYSTEMS
+          </span>
+        </div>
       </div>
     </div>
   );

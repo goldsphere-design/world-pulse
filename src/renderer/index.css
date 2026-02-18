@@ -475,3 +475,243 @@ body {
 .ob-transition-fade {
   transition: all var(--ob-timing-fade) var(--ob-easing-mechanical);
 }
+
+/* ============================================
+   VIGNETTE OVERLAY
+   ============================================ */
+.ob-vignette::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ============================================
+   HORIZONTAL RULE / DIVIDER
+   ============================================ */
+.ob-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ob-border-subtle) 20%,
+    var(--ob-accent-cyan) 50%,
+    var(--ob-border-subtle) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+.ob-divider-vertical {
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--ob-border-subtle) 20%,
+    var(--ob-accent-cyan) 50%,
+    var(--ob-border-subtle) 80%,
+    transparent 100%
+  );
+  opacity: 0.4;
+  align-self: stretch;
+}
+
+/* ============================================
+   FEATURED EVENT HIGHLIGHT BAR
+   ============================================ */
+.ob-featured-bar {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 140, 66, 0.08) 0%,
+    rgba(255, 140, 66, 0.15) 50%,
+    rgba(255, 140, 66, 0.08) 100%
+  );
+  border: 1px solid rgba(255, 140, 66, 0.25);
+}
+
+.ob-featured-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ob-accent-amber),
+    transparent
+  );
+  opacity: 0.6;
+}
+
+/* ============================================
+   DATA READOUT STYLING
+   ============================================ */
+.ob-readout-value {
+  color: var(--ob-accent-cyan);
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   BOOT TERMINAL EFFECTS
+   ============================================ */
+.ob-terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.2em;
+  background: var(--ob-accent-cyan);
+  animation: cursorBlink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ob-boot-line {
+  opacity: 0;
+  animation: bootLineReveal 0.3s var(--ob-easing-snap) forwards;
+}
+
+@keyframes bootLineReveal {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   PROGRESS BAR (OBLIVION STYLE)
+   ============================================ */
+.ob-progress-track {
+  height: 2px;
+  background: var(--ob-border-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.ob-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--ob-accent-cyan),
+    rgba(0, 212, 255, 0.6)
+  );
+  box-shadow: 0 0 8px var(--ob-glow-cyan);
+  transition: width 0.5s var(--ob-easing-snap);
+}
+
+/* ============================================
+   HEADER ACCENT LINES
+   ============================================ */
+.ob-header-accent {
+  position: relative;
+}
+
+.ob-header-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--ob-accent-cyan) 0%,
+    rgba(0, 212, 255, 0.3) 30%,
+    rgba(0, 212, 255, 0.1) 60%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   EVENT CARD REFINED
+   ============================================ */
+.ob-event-card {
+  position: relative;
+  background: rgba(16, 24, 32, 0.6);
+  border: 1px solid var(--ob-border-subtle);
+  border-left: 2px solid var(--ob-accent-cyan);
+  transition: all var(--ob-timing-snap) var(--ob-easing-snap);
+}
+
+.ob-event-card:hover {
+  background: rgba(20, 28, 38, 0.9);
+  transform: translateX(2px);
+  border-left-color: var(--ob-accent-cyan);
+  box-shadow: -2px 0 12px rgba(0, 212, 255, 0.08);
+}
+
+.ob-event-card-featured {
+  background: rgba(255, 140, 66, 0.06);
+  border-left-color: var(--ob-accent-amber);
+  box-shadow: -2px 0 16px rgba(255, 140, 66, 0.1);
+}
+
+.ob-event-card-featured:hover {
+  border-left-color: var(--ob-accent-amber);
+  box-shadow: -2px 0 20px rgba(255, 140, 66, 0.15);
+}
+
+.ob-event-card-danger {
+  border-left-color: var(--ob-danger);
+}
+
+.ob-event-card-danger:hover {
+  border-left-color: var(--ob-danger);
+  box-shadow: -2px 0 12px rgba(255, 61, 61, 0.1);
+}
+
+/* ============================================
+   NOISE TEXTURE OVERLAY
+   ============================================ */
+.ob-noise::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* ============================================
+   SECTION HEADER WITH LINE
+   ============================================ */
+.ob-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ob-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--ob-border-subtle),
+    transparent
+  );
+}

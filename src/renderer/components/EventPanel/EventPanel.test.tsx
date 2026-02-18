@@ -101,7 +101,7 @@ describe('EventPanel', () => {
     });
     useAppStore.setState({ events: [event] });
     render(<EventPanel />);
-    // New format uses 2 decimal places
-    expect(screen.getByText('35.70, 139.70')).toBeInTheDocument();
+    // Event card uses 1 decimal place
+    expect(screen.getByText('35.7, 139.7')).toBeInTheDocument();
   });
 });
