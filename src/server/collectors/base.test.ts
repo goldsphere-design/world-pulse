@@ -8,6 +8,8 @@ class FailingCollector extends BaseCollector {
 
   async fetch() {
     throw new Error('simulated failure');
+    // Return empty array (unreachable, but satisfies type)
+    return [];
   }
 
   validate() {

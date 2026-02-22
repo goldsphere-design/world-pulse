@@ -31,7 +31,11 @@ for (const c of collectors) {
   c.onDisabled = (reason?: string) => {
     console.warn(`[Server] Collector disabled: ${c.name} (${reason || 'unknown'})`);
     try {
-      io.emit('collector:disabled', { name: c.name, reason: reason || null, timestamp: Date.now() });
+      io.emit('collector:disabled', {
+        name: c.name,
+        reason: reason || null,
+        timestamp: Date.now(),
+      });
     } catch (err) {
       console.warn('[Server] Failed to emit collector:disabled', err);
     }
@@ -42,22 +46,22 @@ setCollectors(collectors);
 
 // Start collectors and emit events via Socket.io
 function startCollectors() {
-  console.log('[Server] Starting data collectors...');
+  console.warn('[Server] Starting data collectors...');
 
   for (const collector of collectors) {
     collector.start((events) => {
       addEvents(events);
       io.emit('events:new', { events, timestamp: Date.now() });
-      console.log(`[Server] Emitted ${events.length} ${collector.type} events to clients`);
+      console.warn(`[Server] Emitted ${events.length} ${collector.type} events to clients`);
     });
   }
 }
 
 // Start server
 httpServer.listen(PORT, () => {
-  console.log(`[Server] Running on http://localhost:${PORT}`);
-  console.log(`[Socket.io] WebSocket server ready`);
-  console.log(`[Server] ${collectors.length} collectors configured`);
+  console.warn(`[Server] Running on http://localhost:${PORT}`);
+  console.warn(`[Socket.io] WebSocket server ready`);
+  console.warn(`[Server] ${collectors.length} collectors configured`);
 
   // Start collectors after server is running
   startCollectors();
@@ -65,13 +69,13 @@ httpServer.listen(PORT, () => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('[Server] SIGTERM received, shutting down gracefully');
+  console.warn('[Server] SIGTERM received, shutting down gracefully');
 
   // Stop all collectors
   collectors.forEach((c) => c.stop());
 
   httpServer.close(() => {
-    console.log('[Server] HTTP server closed');
+    console.warn('[Server] HTTP server closed');
     process.exit(0);
   });
 });

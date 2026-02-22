@@ -46,7 +46,7 @@ export abstract class BaseCollector implements DataCollector {
       return;
     }
 
-    console.log(`[${this.name}] Starting collector (interval: ${this.interval}ms)`);
+    console.warn(`[${this.name}] Starting collector (interval: ${this.interval}ms)`);
 
     // Initial fetch (single iteration)
     this.pollNow(callback).catch(() => {});
@@ -64,7 +64,7 @@ export abstract class BaseCollector implements DataCollector {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
-      console.log(`[${this.name}] Stopped`);
+      console.warn(`[${this.name}] Stopped`);
     }
   }
 
@@ -78,7 +78,7 @@ export abstract class BaseCollector implements DataCollector {
       const events = await this.fetch();
 
       if (events.length > 0) {
-        console.log(`[${this.name}] Fetched ${events.length} events`);
+        console.warn(`[${this.name}] Fetched ${events.length} events`);
         callback(events);
       }
 

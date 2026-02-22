@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import ResizeObserver from 'resize-observer-polyfill';
 
 /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
-// @ts-expect-error Attach to global for test environment
+// ResizeObserver assignment to global
 (global as any).ResizeObserver = ResizeObserver;
 
 // Optional: polyfill matchMedia if needed by components

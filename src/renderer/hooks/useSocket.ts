@@ -43,13 +43,13 @@ export function useSocket() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('[Socket] Connected to server');
+      console.warn('[Socket] Connected to server');
       setConnectionStatus('connected');
       checkServerStatus();
     });
 
     socket.on('disconnect', () => {
-      console.log('[Socket] Disconnected from server');
+      console.warn('[Socket] Disconnected from server');
       setConnectionStatus('disconnected');
     });
 
@@ -60,14 +60,14 @@ export function useSocket() {
 
     // Handle initial events on connection
     socket.on('events:initial', (data: EventsPayload) => {
-      console.log(`[Socket] Received ${data.events.length} initial events`);
+      console.warn(`[Socket] Received ${data.events.length} initial events`);
       setEvents(data.events);
       setInitialized(true);
     });
 
     // Handle new events
     socket.on('events:new', (data: EventsPayload) => {
-      console.log(`[Socket] Received ${data.events.length} new events`);
+      console.warn(`[Socket] Received ${data.events.length} new events`);
       addEvents(data.events);
     });
 
