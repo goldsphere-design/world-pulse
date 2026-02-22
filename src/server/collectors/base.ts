@@ -14,12 +14,17 @@ export abstract class BaseCollector implements DataCollector {
   private timer: NodeJS.Timeout | null = null;
   private lastFetch: number = 0;
   private errorCount: number = 0;
-  private readonly maxErrors: number = 5;
+  private readonly maxErrors: number;
+  public disabledReason: string | null = null;
 
-  constructor(name: string, type: EventType, interval: number) {
+  // Optional callback invoked when the collector becomes disabled
+  public onDisabled?: (reason?: string) => void;
+
+  constructor(name: string, type: EventType, interval: number, maxErrors = 5) {
     this.name = name;
     this.type = type;
     this.interval = interval;
+    this.maxErrors = maxErrors;
   }
 
   /**
@@ -43,36 +48,13 @@ export abstract class BaseCollector implements DataCollector {
 
     console.log(`[${this.name}] Starting collector (interval: ${this.interval}ms)`);
 
-    const poll = async () => {
-      if (!this.enabled) return;
-
-      try {
-        const events = await this.fetch();
-
-        if (events.length > 0) {
-          console.log(`[${this.name}] Fetched ${events.length} events`);
-          callback(events);
-        }
-
-        this.lastFetch = Date.now();
-        this.errorCount = 0; // Reset on success
-      } catch (error) {
-        this.errorCount++;
-        console.error(`[${this.name}] Fetch error (${this.errorCount}/${this.maxErrors}):`, error);
-
-        if (this.errorCount >= this.maxErrors) {
-          console.error(`[${this.name}] Max errors reached, disabling collector`);
-          this.stop();
-          this.enabled = false;
-        }
-      }
-    };
-
-    // Initial fetch
-    poll();
+    // Initial fetch (single iteration)
+    this.pollNow(callback).catch(() => {});
 
     // Schedule recurring
-    this.timer = setInterval(poll, this.interval);
+    this.timer = setInterval(() => {
+      this.pollNow(callback).catch(() => {});
+    }, this.interval);
   }
 
   /**
@@ -83,6 +65,36 @@ export abstract class BaseCollector implements DataCollector {
       clearInterval(this.timer);
       this.timer = null;
       console.log(`[${this.name}] Stopped`);
+    }
+  }
+
+  /**
+   * Single iteration of the polling logic. Public to allow deterministic testing.
+   */
+  public async pollNow(callback: (events: Event[]) => void): Promise<void> {
+    if (!this.enabled) return;
+
+    try {
+      const events = await this.fetch();
+
+      if (events.length > 0) {
+        console.log(`[${this.name}] Fetched ${events.length} events`);
+        callback(events);
+      }
+
+      this.lastFetch = Date.now();
+      this.errorCount = 0; // Reset on success
+    } catch (error) {
+      this.errorCount++;
+      console.error(`[${this.name}] Fetch error (${this.errorCount}/${this.maxErrors}):`, error);
+
+      if (this.errorCount >= this.maxErrors) {
+        this.disabledReason = 'max_errors';
+        console.error(`[${this.name}] Max errors reached, disabling collector`);
+        this.stop();
+        this.enabled = false;
+        if (this.onDisabled) this.onDisabled(this.disabledReason);
+      }
     }
   }
 

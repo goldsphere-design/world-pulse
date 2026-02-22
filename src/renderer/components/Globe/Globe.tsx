@@ -1,9 +1,10 @@
 import { useRef, useMemo, useState, useCallback } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '../../store/useAppStore';
 import { createEarthTexture, latLonToVector3 } from './earthTexture';
+import { CityLabels } from './CityLabels';
 import type { Event } from '@shared/types';
 
 const GLOBE_RADIUS = 1;
@@ -279,6 +280,26 @@ function Stars() {
   );
 }
 
+/** Track camera distance and render city labels */
+function CityLabelsWithTracking() {
+  const { featuredEvent } = useAppStore();
+  const { camera } = useThree();
+  const [cameraDistance, setCameraDistance] = useState(2.4);
+
+  // Track camera distance from origin on each frame
+  useFrame(() => {
+    const distance = camera.position.length();
+    setCameraDistance(distance);
+  });
+
+  return (
+    <CityLabels
+      cameraDistance={cameraDistance}
+      featuredEventLocation={featuredEvent?.location}
+    />
+  );
+}
+
 /** Main Globe component */
 export function Globe() {
   const [isInteracting, setIsInteracting] = useState(false);
@@ -323,6 +344,7 @@ export function Globe() {
               <Atmosphere />
               <AtmosphereRing />
               <EventMarkers />
+              <CityLabelsWithTracking />
             </RotatingGlobe>
             <OrbitControls
               enableZoom={true}

@@ -57,8 +57,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addEvents: (newEvents) => {
     const { events } = get();
-    const combined = [...newEvents, ...events].slice(0, 100);
+
+    // Deduplicate: Remove existing events with matching IDs
+    const newIds = new Set(newEvents.map((e) => e.id));
+    const filtered = events.filter((e) => !newIds.has(e.id));
+
+    // Combine: new events first, then existing (without duplicates)
+    const combined = [...newEvents, ...filtered].slice(0, 100);
+
     set({ events: combined });
+
     // Update featured to newest high-severity event
     const highSeverity = newEvents.find((e) => (e.severity ?? 0) >= 5);
     if (highSeverity) {

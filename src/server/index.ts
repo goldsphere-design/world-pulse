@@ -26,6 +26,18 @@ const collectors = [
   new PlanetCollector(),
 ];
 
+// Attach disable handlers so server can react and notify clients
+for (const c of collectors) {
+  c.onDisabled = (reason?: string) => {
+    console.warn(`[Server] Collector disabled: ${c.name} (${reason || 'unknown'})`);
+    try {
+      io.emit('collector:disabled', { name: c.name, reason: reason || null, timestamp: Date.now() });
+    } catch (err) {
+      console.warn('[Server] Failed to emit collector:disabled', err);
+    }
+  };
+}
+
 setCollectors(collectors);
 
 // Start collectors and emit events via Socket.io
