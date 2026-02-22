@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unknown-property */
+
 import { useMemo } from 'react';
 
 const STAR_COUNT = 2000;

@@ -1,3 +1,8 @@
+/* eslint-disable react/no-unknown-property */
+/*
+  Allow Three.js JSX props in this file (spriteMaterial depthTest etc.)
+*/
+
 import { useMemo } from 'react';
 import type { Event } from '@shared/types';
 import { altAzToVector3 } from './altAzToVector3';
