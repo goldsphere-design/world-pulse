@@ -734,10 +734,10 @@ const OBLIVION_COLORS = {
   gridDot: 'rgba(200, 230, 240, 0.03)',
   gridLine: 'rgba(0, 212, 255, 0.06)',
   gridMajor: 'rgba(0, 212, 255, 0.12)',
-  coastline: 'rgba(0, 212, 255, 0.7)',
-  coastlineGlow: 'rgba(0, 212, 255, 0.3)',
-  landFill: 'rgba(0, 212, 255, 0.05)',
-  contourLine: 'rgba(0, 212, 255, 0.15)',
+  coastline: 'rgba(0, 212, 255, 0.85)', // Enhanced from 0.7 for better visibility
+  coastlineGlow: 'rgba(0, 212, 255, 0.45)', // Enhanced from 0.3
+  landFill: 'rgba(0, 212, 255, 0.08)', // Enhanced from 0.05
+  contourLine: 'rgba(0, 212, 255, 0.22)', // Enhanced from 0.15
 };
 
 /**

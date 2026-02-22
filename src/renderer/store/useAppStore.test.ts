@@ -110,6 +110,67 @@ describe('useAppStore', () => {
       useAppStore.getState().addEvents([mockEvent('low', { severity: 2 })]);
       expect(useAppStore.getState().featuredEvent?.id).toBe('initial');
     });
+
+    it('should deduplicate events with same ID', () => {
+      useAppStore.getState().setEvents([mockEvent('iss-position', { title: 'ISS Old' })]);
+      useAppStore.getState().addEvents([mockEvent('iss-position', { title: 'ISS New' })]);
+
+      const events = useAppStore.getState().events;
+      expect(events.length).toBe(1);
+      expect(events[0].title).toBe('ISS New'); // Latest version
+    });
+
+    it('should keep latest version of static-ID events', () => {
+      useAppStore.getState().setEvents([
+        mockEvent('planet-mercury', { timestamp: 1000 }),
+        mockEvent('planet-venus', { timestamp: 1000 }),
+      ]);
+
+      useAppStore.getState().addEvents([mockEvent('planet-mercury', { timestamp: 2000 })]);
+
+      const events = useAppStore.getState().events;
+      expect(events.length).toBe(2); // Mercury updated, Venus kept
+      const mercury = events.find((e) => e.id === 'planet-mercury');
+      expect(mercury?.timestamp).toBe(2000);
+    });
+
+    it('should handle multiple duplicates in single batch', () => {
+      useAppStore.getState().setEvents([mockEvent('iss-position'), mockEvent('planet-moon')]);
+
+      useAppStore.getState().addEvents([
+        mockEvent('iss-position'),
+        mockEvent('planet-moon'),
+        mockEvent('earthquake-new'),
+      ]);
+
+      const events = useAppStore.getState().events;
+      expect(events.length).toBe(3); // All deduplicated correctly
+
+      // Verify IDs are unique
+      const ids = events.map((e) => e.id);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(3);
+    });
+
+    it('should preserve event order after deduplication', () => {
+      useAppStore.getState().setEvents([
+        mockEvent('event-1'),
+        mockEvent('event-2'),
+        mockEvent('event-3'),
+      ]);
+
+      useAppStore.getState().addEvents([
+        mockEvent('event-2'), // Duplicate, should replace old one
+        mockEvent('event-4'), // New event
+      ]);
+
+      const events = useAppStore.getState().events;
+      expect(events.length).toBe(4);
+      expect(events[0].id).toBe('event-2'); // New version first
+      expect(events[1].id).toBe('event-4'); // New event second
+      expect(events[2].id).toBe('event-1'); // Old events follow
+      expect(events[3].id).toBe('event-3');
+    });
   });
 
   describe('setFeaturedEvent', () => {

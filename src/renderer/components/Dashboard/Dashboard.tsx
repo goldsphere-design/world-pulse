@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../Header/Header';
 import { Globe } from '../Globe/Globe';
+import { SkyMap } from '../SkyMap/SkyMap';
 import { EventPanel } from '../EventPanel/EventPanel';
 import { Ticker } from '../Ticker/Ticker';
 
@@ -21,7 +22,7 @@ export function Dashboard() {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 min-h-0 grid grid-cols-[1.5fr_1fr] grid-rows-[1fr] gap-4 p-4 overflow-hidden">
+      <main className="flex-1 min-h-0 grid grid-cols-[1.5fr_0.5fr_0.5fr] grid-rows-[1fr] gap-4 p-4 overflow-hidden">
         <div
           className={`min-h-0 ${isBooted ? 'ob-boot-fade-in ob-boot-delay-2' : 'opacity-0'}`}
         >
@@ -30,12 +31,17 @@ export function Dashboard() {
         <div
           className={`min-h-0 ${isBooted ? 'ob-boot-fade-in ob-boot-delay-3' : 'opacity-0'}`}
         >
+          <SkyMap />
+        </div>
+        <div
+          className={`min-h-0 ${isBooted ? 'ob-boot-fade-in ob-boot-delay-4' : 'opacity-0'}`}
+        >
           <EventPanel />
         </div>
       </main>
 
       {/* Ticker */}
-      <div className={isBooted ? 'ob-boot-fade-in ob-boot-delay-4' : 'opacity-0'}>
+      <div className={isBooted ? 'ob-boot-fade-in ob-boot-delay-5' : 'opacity-0'}>
         <Ticker />
       </div>
     </div>
