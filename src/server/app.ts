@@ -23,16 +23,36 @@ export function createApp(options?: { corsOrigin?: string }) {
 
   // Health check endpoint
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    const mem = process.memoryUsage();
+    const collectorsSummary = collectors.map((c) => c.getStatus());
+    const healthyCount = collectorsSummary.filter((c) => c.healthy).length;
+
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: {
+        rss: mem.rss,
+        heapTotal: mem.heapTotal,
+        heapUsed: mem.heapUsed,
+      },
+      collectors: collectorsSummary,
+      collectorsTotal: collectorsSummary.length,
+      collectorsHealthy: healthyCount,
+    });
   });
 
   // Status endpoint for frontend initialization
   app.get('/api/status', (_req, res) => {
     const collectorStatuses = collectors.map((c) => c.getStatus());
+    const healthyCount = collectorStatuses.filter((c) => c.healthy).length;
+
     res.json({
       status: 'ready',
       timestamp: new Date().toISOString(),
       collectors: collectorStatuses,
+      collectorsTotal: collectorStatuses.length,
+      collectorsHealthy: healthyCount,
       eventCount: eventCache.length,
     });
   });
@@ -66,6 +86,14 @@ export function createApp(options?: { corsOrigin?: string }) {
       const newIds = new Set(events.map((e) => e.id));
       const filtered = eventCache.filter((e) => !newIds.has(e.id));
       eventCache = [...events, ...filtered].slice(0, MAX_EVENTS);
+      // Broadcast new events to connected clients
+      try {
+        io.emit('events:new', { events, timestamp: Date.now() });
+      } catch (err) {
+        // If emit fails, log and continue
+        // eslint-disable-next-line no-console
+        console.error('Failed to emit events:new', err);
+      }
     },
     getEventCache() {
       return eventCache;
