@@ -14,7 +14,8 @@ export abstract class BaseCollector implements DataCollector {
   private timer: NodeJS.Timeout | null = null;
   private lastFetch: number = 0;
   private errorCount: number = 0;
-  private readonly maxErrors: number;
+  public readonly maxErrors: number;
+  public lastErrorAt: number | null = null;
   public disabledReason: string | null = null;
 
   // Optional callback invoked when the collector becomes disabled
@@ -86,6 +87,7 @@ export abstract class BaseCollector implements DataCollector {
       this.errorCount = 0; // Reset on success
     } catch (error) {
       this.errorCount++;
+      this.lastErrorAt = Date.now();
       console.error(`[${this.name}] Fetch error (${this.errorCount}/${this.maxErrors}):`, error);
 
       if (this.errorCount >= this.maxErrors) {
@@ -109,6 +111,10 @@ export abstract class BaseCollector implements DataCollector {
       running: this.timer !== null,
       lastFetch: this.lastFetch,
       errorCount: this.errorCount,
+      maxErrors: this.maxErrors,
+      lastErrorAt: this.lastErrorAt,
+      disabledReason: this.disabledReason,
+      healthy: this.enabled && this.timer !== null && this.errorCount < this.maxErrors,
     };
   }
 }
