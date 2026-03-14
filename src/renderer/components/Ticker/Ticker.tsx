@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import StatusBadge from '../StatusBadge/StatusBadge';
 
 function getEventIndicator(type: string, severity?: number): { color: string; symbol: string } {
   // Color based on severity
@@ -33,22 +34,28 @@ export function Ticker() {
   const activeCollectors = serverStatus?.collectors.filter((c) => c.running).length || 0;
 
   return (
-    <div className="bg-ob-bg-panel border-t border-ob-border">
+    <div className="ob-panel">
       {/* Scrolling ticker */}
-      <div className="px-5 py-3 overflow-hidden border-b border-ob-border/50">
-        <div className="flex animate-scroll whitespace-nowrap text-sm">
+      <div className="px-4 py-2 overflow-hidden border-b border-ob-border/50 ob-scanline">
+        <div className="flex animate-scroll whitespace-nowrap text-sm gap-2 items-center">
           {tickerEvents.length > 0 ? (
             <>
-              {/* Double the items for seamless scrolling */}
               {[...tickerEvents, ...tickerEvents].map((event, index) => {
                 const indicator = getEventIndicator(event.type, event.severity);
                 return (
                   <Fragment key={`${event.id}-${index}`}>
-                    <span className="px-6 flex items-center gap-2">
-                      <span className={indicator.color}>{indicator.symbol}</span>
-                      <span className="text-ob-text">{event.title}</span>
-                    </span>
-                    <span className="text-ob-border">|</span>
+                    <div className="inline-flex items-center gap-3 px-4 py-1 ob-panel bg-ob-bg-elevated/40 rounded">
+                      <span className={`${indicator.color} text-[14px]`} aria-hidden>
+                        {indicator.symbol}
+                      </span>
+                      <span className="text-ob-text text-[13px] truncate max-w-[36ch]">
+                        {event.title}
+                      </span>
+                      <span className="ob-label text-ob-text-dim text-[11px] tabular-nums">
+                        {new Date(event.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <span className="text-ob-border px-2">|</span>
                   </Fragment>
                 );
               })}
@@ -60,15 +67,16 @@ export function Ticker() {
       </div>
 
       {/* Status bar */}
-      <div className="bg-ob-bg-primary px-5 py-2 text-xs flex items-center gap-6">
+      <div className="px-4 py-2 text-xs flex items-center gap-6 ob-panel-inner">
         {/* Sources */}
         <div className="flex items-center gap-2">
           <span className="ob-label text-ob-text-dim">SOURCES</span>
-          <span className="ob-value text-ob-cyan">{activeCollectors}</span>
+          <StatusBadge state={activeCollectors > 0 ? 'nominal' : 'warning'}>
+            {activeCollectors}
+          </StatusBadge>
         </div>
 
-        {/* Divider */}
-        <div className="h-3 w-px bg-ob-border" />
+        <div className="h-3 w-px border-ob-border" />
 
         {/* Refresh interval */}
         <div className="flex items-center gap-2">
@@ -76,13 +84,14 @@ export function Ticker() {
           <span className="ob-value text-ob-text">5M</span>
         </div>
 
-        {/* Divider */}
-        <div className="h-3 w-px bg-ob-border" />
+        <div className="h-3 w-px border-ob-border" />
 
         {/* Event count */}
         <div className="flex items-center gap-2">
           <span className="ob-label text-ob-text-dim">EVENTS</span>
-          <span className="ob-value text-ob-text">{events.length}</span>
+          <StatusBadge state={events.length > 200 ? 'warning' : 'nominal'}>
+            {events.length}
+          </StatusBadge>
           <span className="ob-label text-ob-text-dim">(24H)</span>
         </div>
 

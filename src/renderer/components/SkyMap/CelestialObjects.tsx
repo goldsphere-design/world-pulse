@@ -70,17 +70,23 @@ export function CelestialObjects({ events }: CelestialObjectsProps) {
         color = PLANET_COLOR;
         size = 0.3;
       } else if (event.type === 'asteroid') {
-        // Asteroids: place in a simple pattern (no real alt/az available)
-        // Use a simplified approach: random position in upper hemisphere
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.random() * (Math.PI / 2); // Upper hemisphere only
+        // Asteroids: deterministic placement based on event id so items remain visible
+        const idStr = event.id || `${event.timestamp || Date.now()}`;
+        // Simple hash -> deterministic pseudo-random angles
+        let hash = 0;
+        for (let i = 0; i < idStr.length; i++) {
+          hash = (hash << 5) - hash + idStr.charCodeAt(i);
+          hash |= 0;
+        }
+        const theta = ((hash >>> 0) % 360) * (Math.PI / 180);
+        const phi = (((hash >>> 3) % 60) + 15) * (Math.PI / 180); // keep within upper hemisphere
         position = altAzToVector3(
           (phi * 180) / Math.PI - 90,
           (theta * 180) / Math.PI,
           ASTEROID_RADIUS
         );
         color = ASTEROID_COLOR;
-        size = 0.15;
+        size = 0.18;
       } else {
         return null;
       }

@@ -21,12 +21,7 @@ export function HorizonRing({ observerLat = 40 }: HorizonRingProps) {
   return (
     <mesh rotation={[tiltAngle, 0, 0]}>
       <ringGeometry args={[HORIZON_RADIUS_INNER, HORIZON_RADIUS_OUTER, 64]} />
-      <meshBasicMaterial
-        color={HORIZON_COLOR}
-        transparent
-        opacity={0.2}
-        side={THREE.DoubleSide}
-      />
+      <meshBasicMaterial color={HORIZON_COLOR} transparent opacity={0.2} side={THREE.DoubleSide} />
     </mesh>
   );
 }
