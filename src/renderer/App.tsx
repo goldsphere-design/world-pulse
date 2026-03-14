@@ -2,6 +2,7 @@ import { useSocket } from './hooks/useSocket';
 import { useAppStore } from './store/useAppStore';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 
 function App() {
   // Initialize socket connection
@@ -14,7 +15,11 @@ function App() {
     return <LoadingScreen />;
   }
 
-  return <Dashboard />;
+  return (
+    <ErrorBoundary name="Dashboard">
+      <Dashboard />
+    </ErrorBoundary>
+  );
 }
 
 export default App;
