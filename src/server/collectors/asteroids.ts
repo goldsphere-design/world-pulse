@@ -120,6 +120,7 @@ export class AsteroidCollector extends BaseCollector {
       id: `asteroid-${neo.id}`,
       timestamp: approach.epoch_date_close_approach,
       type: 'asteroid',
+      source: 'NASA Near Earth Object Web Service',
       location: null, // Asteroids are in space, no ground location
       severity,
       title: `Asteroid ${cleanName}`,

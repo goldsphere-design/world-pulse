@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/useAppStore';
-import type { Event } from '@shared/types';
+import type { Event, EventType } from '@shared/types';
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -9,8 +9,8 @@ function formatTimestamp(timestamp: number): string {
   });
 }
 
-function getEventTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
+function getEventTypeLabel(type: EventType): string {
+  const labels: Record<EventType, string> = {
     earthquake: 'SEISMIC',
     weather: 'WEATHER',
     news: 'NEWS',
@@ -20,8 +20,12 @@ function getEventTypeLabel(type: string): string {
     aurora: 'AURORA',
     asteroid: 'ASTEROID',
     planet: 'PLANET',
+    music: 'MUSIC',
+    ocean: 'OCEAN',
+    calendar: 'CALENDAR',
+    historical: 'HISTORICAL',
   };
-  return labels[type] || type.toUpperCase();
+  return labels[type] ?? type.toUpperCase();
 }
 
 function getSeverityColor(severity?: number): { border: string; bg: string; text: string } {
@@ -107,7 +111,7 @@ export function EventPanel() {
   const { events, featuredEvent, setFeaturedEvent } = useAppStore();
 
   return (
-    <div className="ob-panel p-4 flex flex-col h-full">
+    <div className="ob-panel p-3 flex flex-col h-full">
       <div className="ob-panel-inner flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-ob-border pb-3 mb-3">
@@ -116,7 +120,7 @@ export function EventPanel() {
             <span className="ob-label text-ob-cyan">[{events.length}]</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-1 h-1 rounded-full bg-ob-success animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-ob-success animate-pulse" />
             <span className="ob-label text-[9px] text-ob-text-dim">LIVE</span>
           </div>
         </div>

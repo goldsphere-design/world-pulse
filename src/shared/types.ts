@@ -9,12 +9,34 @@ export interface Event {
   id: string;
   timestamp: number; // Unix timestamp in ms
   type: EventType;
+  source: string; // Human-readable data source name (e.g. 'USGS Earthquake Hazards Program')
   location: GeoLocation | null;
   severity?: number; // 0-10 scale for visualization
   title: string;
   description?: string;
   data: Record<string, unknown>; // Source-specific data
 }
+
+/**
+ * Source-level metadata for a data collector
+ */
+export interface CollectorMeta {
+  name: string; // Collector identifier (e.g. 'earthquakes')
+  source: string; // Human-readable data source name
+  type: EventType;
+  url?: string; // API or data source URL
+}
+
+/**
+ * Connection status for WebSocket lifecycle, including dormant-reconnecting phase.
+ * Exported from shared types so frontend and backend use identical values.
+ */
+export type ConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'error'
+  | 'dormant-reconnecting';
 
 export type EventType =
   | 'earthquake'

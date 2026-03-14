@@ -29,6 +29,10 @@ export function Header() {
         return <span className="ob-status-critical">OFFLINE</span>;
       case 'error':
         return <span className="ob-status-critical">ERROR</span>;
+      case 'dormant-reconnecting':
+        return <span className="ob-status-warning">RECONNECTING</span>;
+      default:
+        return <span className="ob-status-warning">UNKNOWN</span>;
     }
   };
 

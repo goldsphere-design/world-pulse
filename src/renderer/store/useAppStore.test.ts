@@ -7,6 +7,7 @@ function mockEvent(id: string, overrides?: Partial<Event>): Event {
     id,
     timestamp: Date.now(),
     type: 'earthquake',
+    source: 'USGS Earthquake Hazards Program',
     location: { lat: 0, lon: 0, name: 'Test Location' },
     severity: 3,
     title: `Event ${id}`,
@@ -45,7 +46,13 @@ describe('useAppStore', () => {
     });
 
     it('should handle all status values', () => {
-      const statuses = ['connecting', 'connected', 'disconnected', 'error'] as const;
+      const statuses = [
+        'connecting',
+        'connected',
+        'disconnected',
+        'error',
+        'dormant-reconnecting',
+      ] as const;
       for (const status of statuses) {
         useAppStore.getState().setConnectionStatus(status);
         expect(useAppStore.getState().connectionStatus).toBe(status);

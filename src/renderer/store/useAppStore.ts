@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import type { Event } from '@shared/types';
-
-type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+import type { Event, ConnectionStatus } from '@shared/types';
 
 interface AppState {
   // Connection state

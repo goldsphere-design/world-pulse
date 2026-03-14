@@ -62,6 +62,7 @@ export class AuroraCollector extends BaseCollector {
       id: `aurora-${entry.time_tag}`,
       timestamp: new Date(entry.time_tag).getTime(),
       type: 'aurora',
+      source: 'NOAA Space Weather Prediction Center',
       location: {
         lat: visibility.latitude,
         lon: 0, // Aurora is circumpolar

@@ -95,6 +95,7 @@ export class ISSCollector extends BaseCollector {
       id: 'iss-position',
       timestamp: data.timestamp * 1000,
       type: 'iss',
+      source: 'Open Notify',
       location: { lat, lon, name: 'International Space Station' },
       severity: 0, // Always visible, no severity
       title: 'ISS - International Space Station',
@@ -112,6 +113,7 @@ export class ISSCollector extends BaseCollector {
       id: 'iss-position',
       timestamp: data.timestamp * 1000,
       type: 'iss',
+      source: 'Where the ISS at?',
       location: {
         lat: data.latitude,
         lon: data.longitude,

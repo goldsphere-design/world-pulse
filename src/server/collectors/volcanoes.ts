@@ -112,6 +112,7 @@ export class VolcanoCollector extends BaseCollector {
       id: `volcano-${notice.volcanoId}`,
       timestamp: new Date(notice.sentUtc).getTime(),
       type: 'volcano',
+      source: 'Smithsonian Global Volcanism Program',
       location: {
         lat: notice.volcanoLatitude,
         lon: notice.volcanoLongitude,
@@ -133,6 +134,7 @@ export class VolcanoCollector extends BaseCollector {
       id: `volcano-${volcano.vnum}`,
       timestamp: Date.now(),
       type: 'volcano',
+      source: 'USGS Volcano Hazards Program',
       location: {
         lat: volcano.latitude,
         lon: volcano.longitude,
