@@ -76,6 +76,7 @@ export class EarthquakeCollector extends BaseCollector {
       id: `quake-${feature.id}`,
       timestamp: feature.properties.time,
       type: 'earthquake',
+      source: 'USGS Earthquake Hazards Program',
       location: { lat, lon, name: feature.properties.place },
       severity: this.calculateSeverity(magnitude),
       title: `M${magnitude.toFixed(1)} - ${feature.properties.place}`,

@@ -60,6 +60,7 @@ describe('Socket.io integration', () => {
       id: 'socket-test-1',
       timestamp: Date.now(),
       type: 'earthquake' as const,
+      source: 'USGS Earthquake Hazards Program',
       location: null,
       title: 'Socket Test',
       data: {},

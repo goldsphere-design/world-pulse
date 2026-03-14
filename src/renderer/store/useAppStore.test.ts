@@ -7,6 +7,7 @@ function mockEvent(id: string, overrides?: Partial<Event>): Event {
     id,
     timestamp: Date.now(),
     type: 'earthquake',
+    source: 'USGS Earthquake Hazards Program',
     location: { lat: 0, lon: 0, name: 'Test Location' },
     severity: 3,
     title: `Event ${id}`,

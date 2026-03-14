@@ -163,6 +163,7 @@ export class PlanetCollector extends BaseCollector {
       id: `planet-${planet.name.toLowerCase()}`,
       timestamp: date.getTime(),
       type: 'planet',
+      source: 'Astronomical Ephemeris',
       location: null, // Planets are in the sky, not on Earth
       severity: this.getMagnitudeSeverity(planet.magnitude),
       title: `${planet.symbol} ${planet.name} in ${constellation}`,
@@ -197,6 +198,7 @@ export class PlanetCollector extends BaseCollector {
       id: 'planet-moon',
       timestamp: date.getTime(),
       type: 'planet',
+      source: 'Astronomical Ephemeris',
       location: null,
       severity: 2, // Moon is always notable
       title: `🌙 Moon - ${phaseName}`,
