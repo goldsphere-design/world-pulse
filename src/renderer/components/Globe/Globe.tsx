@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '../../store/useAppStore';
-import { createEarthTexture, latLonToVector3 } from './earthTexture';
+import { createEarthTextures, latLonToVector3 } from './earthTexture';
 import { CityLabels } from './CityLabels';
 import type { Event } from '@shared/types';
 
@@ -51,19 +51,28 @@ function AtmosphereRing() {
 
 /** The main earth sphere with canvas texture */
 function EarthSphere() {
-  const texture = useMemo(() => createEarthTexture(), []);
+  const textures = useMemo(() => createEarthTextures(), []);
 
   return (
     <>
-      {/* Solid globe */}
+      {/* Solid globe with standard material for subtle shading */}
       <mesh>
-        <sphereGeometry args={[GLOBE_RADIUS, 64, 32]} />
-        <meshBasicMaterial map={texture} />
+        <sphereGeometry args={[GLOBE_RADIUS, 96, 48]} />
+        <meshStandardMaterial
+          map={textures.map}
+          normalMap={textures.normalMap}
+          normalScale={new THREE.Vector2(0.5, 0.5)}
+          metalness={0.1}
+          roughness={0.8}
+          emissive={'#001826'}
+          emissiveIntensity={0.2}
+          toneMapped={false}
+        />
       </mesh>
-      {/* Faint wireframe overlay for depth */}
+      {/* Thin rim wireframe overlay for technical aesthetic */}
       <mesh>
-        <sphereGeometry args={[GLOBE_RADIUS * 1.002, 36, 18]} />
-        <meshBasicMaterial color={OB_COLORS.cyan} wireframe transparent opacity={0.03} />
+        <sphereGeometry args={[GLOBE_RADIUS * 1.002, 48, 24]} />
+        <meshBasicMaterial color={OB_COLORS.cyan} wireframe transparent opacity={0.04} />
       </mesh>
     </>
   );
@@ -293,10 +302,7 @@ function CityLabelsWithTracking() {
   });
 
   return (
-    <CityLabels
-      cameraDistance={cameraDistance}
-      featuredEventLocation={featuredEvent?.location}
-    />
+    <CityLabels cameraDistance={cameraDistance} featuredEventLocation={featuredEvent?.location} />
   );
 }
 
@@ -334,10 +340,15 @@ export function Globe() {
           onPointerUp={handlePointerUp}
         >
           <Canvas
-            camera={{ position: [0, 0.3, 2.4], fov: 45 }}
+            camera={{ position: [0, 0.6, 2.8], fov: 40 }}
             style={{ background: 'transparent' }}
             gl={{ antialias: true, alpha: true }}
           >
+            {/* Lighting for better landmass definition */}
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 5, 5]} intensity={0.6} color={OB_COLORS.cyan} />
+            <hemisphereLight args={['#10202A', '#000000', 0.2]} />
+
             <Stars />
             <RotatingGlobe isPaused={isInteracting}>
               <EarthSphere />
@@ -349,9 +360,9 @@ export function Globe() {
             <OrbitControls
               enableZoom={true}
               enablePan={false}
-              minDistance={1.5}
-              maxDistance={5}
-              zoomSpeed={0.5}
+              minDistance={1.3}
+              maxDistance={8}
+              zoomSpeed={0.6}
             />
           </Canvas>
         </div>

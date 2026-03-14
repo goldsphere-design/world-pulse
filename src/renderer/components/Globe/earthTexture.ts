@@ -736,8 +736,8 @@ const OBLIVION_COLORS = {
   gridMajor: 'rgba(0, 212, 255, 0.12)',
   coastline: 'rgba(0, 212, 255, 0.85)', // Enhanced from 0.7 for better visibility
   coastlineGlow: 'rgba(0, 212, 255, 0.45)', // Enhanced from 0.3
-  landFill: 'rgba(0, 212, 255, 0.08)', // Enhanced from 0.05
-  contourLine: 'rgba(0, 212, 255, 0.22)', // Enhanced from 0.15
+  landFill: 'rgba(0, 212, 255, 0.14)', // Increased for stronger land definition
+  contourLine: 'rgba(0, 212, 255, 0.28)', // Slightly stronger contours
 };
 
 /**
@@ -745,7 +745,10 @@ const OBLIVION_COLORS = {
  * Features: dot grid, contour-style landmasses, cyan color scheme.
  * Uses equirectangular projection so it maps correctly onto a SphereGeometry.
  */
-export function createEarthTexture(): THREE.CanvasTexture {
+export function createEarthTextures(): {
+  map: THREE.CanvasTexture;
+  normalMap: THREE.CanvasTexture;
+} {
   const width = 2048;
   const height = 1024;
   const canvas = document.createElement('canvas');
@@ -760,6 +763,68 @@ export function createEarthTexture(): THREE.CanvasTexture {
   // Helper: convert lon/lat to canvas x/y
   const toX = (lon: number) => ((lon + 180) / 360) * width;
   const toY = (lat: number) => ((90 - lat) / 180) * height;
+
+  // --- Height map generation (procedural, deterministic) ---
+  const heightCanvas = document.createElement('canvas');
+  heightCanvas.width = width;
+  heightCanvas.height = height;
+  const hctx = heightCanvas.getContext('2d')!;
+
+  // first, create a land mask so we only add relief to land areas
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = width;
+  maskCanvas.height = height;
+  const mctx = maskCanvas.getContext('2d')!;
+  mctx.fillStyle = '#000';
+  mctx.fillRect(0, 0, width, height);
+  mctx.fillStyle = '#fff';
+  for (const coastline of COASTLINES) {
+    if (coastline.length < 3) continue;
+    mctx.beginPath();
+    mctx.moveTo(toX(coastline[0][0]), toY(coastline[0][1]));
+    for (let i = 1; i < coastline.length; i++) {
+      const prevLon = coastline[i - 1][0];
+      const currLon = coastline[i][0];
+      if (Math.abs(currLon - prevLon) > 180) {
+        mctx.stroke();
+        mctx.beginPath();
+        mctx.moveTo(toX(currLon), toY(coastline[i][1]));
+      } else {
+        mctx.lineTo(toX(coastline[i][0]), toY(coastline[i][1]));
+      }
+    }
+    mctx.closePath();
+    mctx.fill();
+  }
+
+  // Fill height canvas with noise, then mask to land
+  const hImage = hctx.createImageData(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const nx = x / width;
+      const ny = y / height;
+      // base noise
+      let v = 0;
+      let frequency = 1;
+      let amplitude = 1;
+      for (let octave = 0; octave < 5; octave++) {
+        const sample = Math.abs(Math.sin((nx * frequency + ny * frequency) * (12.9898 + octave)));
+        v += sample * amplitude;
+        frequency *= 2;
+        amplitude *= 0.5;
+      }
+      v = Math.pow(v / (1 - Math.pow(0.5, 5)), 1.3); // normalize and bias
+
+      const maskData = mctx.getImageData(x, y, 1, 1).data[0];
+      const heightValue = maskData > 128 ? Math.floor(v * 255) : 0;
+      const idx = (y * width + x) * 4;
+      hImage.data[idx] = heightValue;
+      hImage.data[idx + 1] = heightValue;
+      hImage.data[idx + 2] = heightValue;
+      hImage.data[idx + 3] = 255;
+    }
+  }
+  hctx.putImageData(hImage, 0, 0);
 
   // Draw dot grid background (Oblivion signature pattern)
   ctx.fillStyle = OBLIVION_COLORS.gridDot;
@@ -845,9 +910,9 @@ export function createEarthTexture(): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  // Draw inner contour lines (topographic effect)
+  // Draw a single, slightly stronger contour line to help landmasses read
   ctx.strokeStyle = OBLIVION_COLORS.contourLine;
-  ctx.lineWidth = 0.5;
+  ctx.lineWidth = 1;
   for (const coastline of COASTLINES) {
     if (coastline.length < 4) continue;
     const first = coastline[0];
@@ -855,33 +920,21 @@ export function createEarthTexture(): THREE.CanvasTexture {
     const isClosed = Math.abs(first[0] - last[0]) < 5 && Math.abs(first[1] - last[1]) < 5;
     if (!isClosed) continue;
 
-    // Draw inset contour lines
-    for (let inset = 0.92; inset >= 0.7; inset -= 0.08) {
-      // Calculate centroid
-      let cx = 0,
-        cy = 0;
-      for (const point of coastline) {
-        cx += point[0];
-        cy += point[1];
+    ctx.beginPath();
+    ctx.moveTo(toX(coastline[0][0]), toY(coastline[0][1]));
+    for (let i = 1; i < coastline.length; i++) {
+      const prevLon = coastline[i - 1][0];
+      const currLon = coastline[i][0];
+      if (Math.abs(currLon - prevLon) > 180) {
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(toX(currLon), toY(coastline[i][1]));
+      } else {
+        ctx.lineTo(toX(coastline[i][0]), toY(coastline[i][1]));
       }
-      cx /= coastline.length;
-      cy /= coastline.length;
-
-      ctx.beginPath();
-      const firstPt = coastline[0];
-      const startX = cx + (firstPt[0] - cx) * inset;
-      const startY = cy + (firstPt[1] - cy) * inset;
-      ctx.moveTo(toX(startX), toY(startY));
-
-      for (let i = 1; i < coastline.length; i++) {
-        const pt = coastline[i];
-        const x = cx + (pt[0] - cx) * inset;
-        const y = cy + (pt[1] - cy) * inset;
-        ctx.lineTo(toX(x), toY(y));
-      }
-      ctx.closePath();
-      ctx.stroke();
     }
+    ctx.closePath();
+    ctx.stroke();
   }
 
   // Draw coastline glow (outer)
@@ -926,10 +979,85 @@ export function createEarthTexture(): THREE.CanvasTexture {
     ctx.stroke();
   }
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  return texture;
+  // Draw faint inner dashed lines to suggest country boundaries (offset toward centroid)
+  ctx.strokeStyle = 'rgba(200,230,240,0.14)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([6, 4]);
+  for (const coastline of COASTLINES) {
+    if (coastline.length < 4) continue;
+    // centroid
+    let cx = 0,
+      cy = 0;
+    for (const p of coastline) {
+      cx += p[0];
+      cy += p[1];
+    }
+    cx /= coastline.length;
+    cy /= coastline.length;
+
+    ctx.beginPath();
+    const firstPt = coastline[0];
+    const startX = cx + (firstPt[0] - cx) * 0.98;
+    const startY = cy + (firstPt[1] - cy) * 0.98;
+    ctx.moveTo(toX(startX), toY(startY));
+    for (let i = 1; i < coastline.length; i++) {
+      const pt = coastline[i];
+      const x = cx + (pt[0] - cx) * 0.98;
+      const y = cy + (pt[1] - cy) * 0.98;
+      ctx.lineTo(toX(x), toY(y));
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Composite height map onto color map (multiply) to darken/shade terrain
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(heightCanvas, 0, 0, width, height);
+  ctx.restore();
+
+  // Create normal map from heightCanvas
+  const normalCanvas = document.createElement('canvas');
+  normalCanvas.width = width;
+  normalCanvas.height = height;
+  const nctx = normalCanvas.getContext('2d')!;
+  const heightData = hctx.getImageData(0, 0, width, height).data;
+  const nImage = nctx.createImageData(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const hL = heightData[(y * width + Math.max(x - 1, 0)) * 4];
+      const hR = heightData[(y * width + Math.min(x + 1, width - 1)) * 4];
+      const hU = heightData[(Math.max(y - 1, 0) * width + x) * 4];
+      const hD = heightData[(Math.min(y + 1, height - 1) * width + x) * 4];
+
+      const dx = (hR - hL) / 255;
+      const dy = (hD - hU) / 255;
+      // normal vector
+      const nz = 1.0 / Math.sqrt(dx * dx + dy * dy + 1);
+      const nxv = dx * nz;
+      const nyv = dy * nz;
+
+      // encode to RGB
+      nImage.data[idx] = Math.floor((nxv * 0.5 + 0.5) * 255);
+      nImage.data[idx + 1] = Math.floor((nyv * 0.5 + 0.5) * 255);
+      nImage.data[idx + 2] = Math.floor(nz * 255);
+      nImage.data[idx + 3] = 255;
+    }
+  }
+  nctx.putImageData(nImage, 0, 0);
+
+  const mapTexture = new THREE.CanvasTexture(canvas);
+  mapTexture.wrapS = THREE.RepeatWrapping;
+  mapTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+  const normalTexture = new THREE.CanvasTexture(normalCanvas);
+  normalTexture.wrapS = THREE.RepeatWrapping;
+  normalTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+  return { map: mapTexture, normalMap: normalTexture };
 }
 
 /**
