@@ -37,7 +37,6 @@ describe('Socket.io integration', () => {
     });
 
     // Determine address
-    // @ts-expect-error: address() can return string; we handle that in ternary
     const addr = app.httpServer.address() as { port: number } | null;
     const port = typeof addr === 'object' && addr ? addr.port : 0;
     const url = `http://127.0.0.1:${port}`;
@@ -79,5 +78,50 @@ describe('Socket.io integration', () => {
     expect(newPayload).toBeDefined();
     expect(Array.isArray(newPayload.events)).toBe(true);
     expect(newPayload.events[0].id).toBe('socket-test-1');
+  });
+
+  it('emits events:new exactly once per addEvents call (no double-emit)', async () => {
+    app = createApp({ corsOrigin: '*' });
+
+    await new Promise<void>((resolve) => {
+      app.httpServer.listen(0, () => resolve());
+    });
+
+    const addr = app.httpServer.address() as { port: number } | null;
+    const port = typeof addr === 'object' && addr ? addr.port : 0;
+    const url = `http://127.0.0.1:${port}`;
+
+    clientSocket = Client(url, { transports: ['websocket'] });
+
+    // Wait for initial connection
+    await new Promise<EventPayload>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('no initial event')), 2000);
+      clientSocket?.once('events:initial', (payload: EventPayload) => {
+        clearTimeout(timeout);
+        resolve(payload);
+      });
+    });
+
+    // Count how many times events:new fires
+    let emitCount = 0;
+    clientSocket.on('events:new', () => {
+      emitCount++;
+    });
+
+    const testEvent = {
+      id: 'double-emit-test',
+      timestamp: Date.now(),
+      type: 'earthquake' as const,
+      location: null,
+      title: 'Double Emit Test',
+      data: {},
+    };
+
+    app.addEvents([testEvent]);
+
+    // Wait enough time for any duplicate emit to arrive
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    expect(emitCount).toBe(1);
   });
 });
