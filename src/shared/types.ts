@@ -92,7 +92,7 @@ export interface NewsEvent extends Event {
   type: 'news';
   data: {
     headline: string;
-    source: string;
+    publisher: string;
     url: string;
     sentiment: number; // -1 to 1 (negative to positive)
     category: string;
