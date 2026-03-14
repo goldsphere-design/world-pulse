@@ -28,7 +28,7 @@ export interface CollectorMeta {
 }
 
 /**
- * Connection status for WebSocket lifecycle, including dormant-retry phase.
+ * Connection status for WebSocket lifecycle, including dormant-reconnecting phase.
  * Exported from shared types so frontend and backend use identical values.
  */
 export type ConnectionStatus =

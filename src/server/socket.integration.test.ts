@@ -113,6 +113,7 @@ describe('Socket.io integration', () => {
       id: 'double-emit-test',
       timestamp: Date.now(),
       type: 'earthquake' as const,
+      source: 'USGS Earthquake Hazards Program',
       location: null,
       title: 'Double Emit Test',
       data: {},

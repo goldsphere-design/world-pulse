@@ -46,7 +46,13 @@ describe('useAppStore', () => {
     });
 
     it('should handle all status values', () => {
-      const statuses = ['connecting', 'connected', 'disconnected', 'error'] as const;
+      const statuses = [
+        'connecting',
+        'connected',
+        'disconnected',
+        'error',
+        'dormant-reconnecting',
+      ] as const;
       for (const status of statuses) {
         useAppStore.getState().setConnectionStatus(status);
         expect(useAppStore.getState().connectionStatus).toBe(status);
