@@ -51,7 +51,6 @@ function startCollectors() {
   for (const collector of collectors) {
     collector.start((events) => {
       addEvents(events);
-      io.emit('events:new', { events, timestamp: Date.now() });
       console.warn(`[Server] Emitted ${events.length} ${collector.type} events to clients`);
     });
   }

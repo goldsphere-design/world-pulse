@@ -121,10 +121,12 @@ describe('useAppStore', () => {
     });
 
     it('should keep latest version of static-ID events', () => {
-      useAppStore.getState().setEvents([
-        mockEvent('planet-mercury', { timestamp: 1000 }),
-        mockEvent('planet-venus', { timestamp: 1000 }),
-      ]);
+      useAppStore
+        .getState()
+        .setEvents([
+          mockEvent('planet-mercury', { timestamp: 1000 }),
+          mockEvent('planet-venus', { timestamp: 1000 }),
+        ]);
 
       useAppStore.getState().addEvents([mockEvent('planet-mercury', { timestamp: 2000 })]);
 
@@ -137,11 +139,13 @@ describe('useAppStore', () => {
     it('should handle multiple duplicates in single batch', () => {
       useAppStore.getState().setEvents([mockEvent('iss-position'), mockEvent('planet-moon')]);
 
-      useAppStore.getState().addEvents([
-        mockEvent('iss-position'),
-        mockEvent('planet-moon'),
-        mockEvent('earthquake-new'),
-      ]);
+      useAppStore
+        .getState()
+        .addEvents([
+          mockEvent('iss-position'),
+          mockEvent('planet-moon'),
+          mockEvent('earthquake-new'),
+        ]);
 
       const events = useAppStore.getState().events;
       expect(events.length).toBe(3); // All deduplicated correctly
@@ -153,11 +157,9 @@ describe('useAppStore', () => {
     });
 
     it('should preserve event order after deduplication', () => {
-      useAppStore.getState().setEvents([
-        mockEvent('event-1'),
-        mockEvent('event-2'),
-        mockEvent('event-3'),
-      ]);
+      useAppStore
+        .getState()
+        .setEvents([mockEvent('event-1'), mockEvent('event-2'), mockEvent('event-3')]);
 
       useAppStore.getState().addEvents([
         mockEvent('event-2'), // Duplicate, should replace old one

@@ -1,5 +1,3 @@
-import React from 'react';
-
 type Status = 'healthy' | 'degraded' | 'disabled';
 
 type Props = {
