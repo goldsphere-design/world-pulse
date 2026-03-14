@@ -88,6 +88,21 @@ body {
   position: relative;
   background: var(--ob-bg-panel);
   border: 1px solid var(--ob-border-subtle);
+  transition:
+    border-color var(--ob-timing-fade) var(--ob-easing-snap),
+    box-shadow var(--ob-timing-fade) var(--ob-easing-snap);
+}
+
+/* Hover state: subtle cyan border + glow */
+.ob-panel:hover {
+  border-color: var(--ob-border-active);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.08);
+}
+
+.ob-panel:hover::before,
+.ob-panel:hover::after {
+  border-color: var(--ob-accent-cyan);
+  filter: drop-shadow(0 0 2px var(--ob-accent-cyan));
 }
 
 /* Corner tick marks */
@@ -100,6 +115,9 @@ body {
   border-color: var(--ob-accent-cyan);
   border-style: solid;
   pointer-events: none;
+  transition:
+    border-color var(--ob-timing-fade) var(--ob-easing-snap),
+    filter var(--ob-timing-fade) var(--ob-easing-snap);
 }
 
 .ob-panel::before {
@@ -579,4 +597,26 @@ body {
 
 .ob-transition-fade {
   transition: all var(--ob-timing-fade) var(--ob-easing-mechanical);
+}
+
+/* ============================================
+   ACCESSIBILITY: REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .ob-scanline::after,
+  .ob-dot-grid-animated,
+  .ob-glow,
+  .ob-text-glow,
+  .ob-glitch,
+  .ob-status-warning,
+  .ob-status-critical,
+  .animate-scroll {
+    animation: none;
+  }
+
+  .ob-panel,
+  .ob-panel::before,
+  .ob-panel::after {
+    transition: none;
+  }
 }
